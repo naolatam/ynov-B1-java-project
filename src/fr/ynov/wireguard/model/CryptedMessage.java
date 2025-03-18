@@ -28,6 +28,7 @@ public class CryptedMessage extends Message {
                 byte[] encryptedBytes = Base64.getDecoder().decode(this.getContent());
                 byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
                 this.setContent(decryptedBytes.toString());
+                this.crypted = false;
                 return decryptedBytes.toString();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -41,6 +42,7 @@ public class CryptedMessage extends Message {
             byte[] contentBytes = this.getContent().getBytes();
             byte[] crypted = cipher.doFinal(contentBytes);
             this.setContent(crypted.toString());
+            this.crypted = true;
             return crypted.toString();
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);

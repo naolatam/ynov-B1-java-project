@@ -72,7 +72,14 @@ public class clientSocket extends Socket {
                         this.messages.add(msg);
                         continue;
                     }
-
+                    CryptedMessage cMsg = (CryptedMessage) msg;
+                    cMsg.decrypt(this.serverKey);
+                    if(cMsg.getContent() == null) {
+                        this.askServerKey();
+                        this.messages.add(msg);
+                        continue;
+                    }
+                    this.messages.add(msg);
 
                 }
             }

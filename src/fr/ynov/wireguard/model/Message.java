@@ -6,7 +6,7 @@ public class Message {
         private MessageEvent event;
         private String content;
         private Socket origin;
-        private boolean crypted;
+        protected boolean crypted;
 
         public Message(String content, Socket origin, boolean crypted, MessageEvent event) {
             this.content = content;

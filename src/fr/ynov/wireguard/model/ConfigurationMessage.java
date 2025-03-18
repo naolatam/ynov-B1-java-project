@@ -32,6 +32,7 @@ public class ConfigurationMessage extends Message {
                 byte[] encryptedBytes = Base64.getDecoder().decode(this.getContent());
                 byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
                 this.setContent(decryptedBytes.toString());
+                this.crypted = false;
                 return decryptedBytes.toString();
             } catch (Exception e) {
                 e.printStackTrace();
