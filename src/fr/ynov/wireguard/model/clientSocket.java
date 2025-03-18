@@ -72,7 +72,7 @@ public class clientSocket extends Socket {
                         this.messages.add(msg);
                         continue;
                     }
-                    
+
 
                 }
             }
