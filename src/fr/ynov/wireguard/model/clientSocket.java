@@ -36,13 +36,7 @@ public class clientSocket extends Socket {
     public void askServerKey() throws IOException {
         String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
         ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, false, MessageEvent.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
-        try {
-            OutputStream output = this.getOutputStream();
-            output.write(confMessage.getJSON().getBytes());
-        } catch (IOException e){
-            e.printStackTrace();
-            System.out.println("IO Exception: "+ e.toString());
-        }
+        sendMessage(confMessage);
     }
 
     private void listenMessage() {
@@ -67,21 +61,22 @@ public class clientSocket extends Socket {
                     this.messages.add(confMessage);
                 }
                 if(msg.isCrypted()){
-                    if(this.serverKey == null) {
-                        this.askServerKey();
+                    if(this.privateKey == null) {
                         this.messages.add(msg);
                         continue;
                     }
                     CryptedMessage cMsg = (CryptedMessage) msg;
-                    cMsg.decrypt(this.serverKey);
+                    cMsg.decrypt(this.privateKey);
                     if(cMsg.getContent() == null) {
                         this.askServerKey();
                         this.messages.add(msg);
                         continue;
                     }
-                    this.messages.add(msg);
-
+                    this.messages.add(cMsg);
+                    continue;
                 }
+                this.messages.add(msg);
+                continue;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -93,5 +88,32 @@ public class clientSocket extends Socket {
         }
     }
 
+    public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException {
+        Message msg = null;
+        if(crypted) {
+            try {
+
+                CryptedMessage cMsg = new CryptedMessage(content, crypted, MessageEvent.MESSAGE);
+                cMsg.encrypt(this.serverKey);
+                msg = cMsg;
+            } catch (Exception e) {
+                System.out.println("IO Exception: "+ e.toString());
+                sendMessage(content, false);
+            }
+        }else {
+            msg = new Message(content, this, crypted, MessageEvent.MESSAGE);
+        }
+        sendMessage(msg);
+    }
+    public void sendMessage(Message msg) throws IOException, AssertionError {
+        try {
+            OutputStream output = this.getOutputStream();
+            assert msg != null;
+            output.write(msg.getJSON().getBytes());
+        } catch (IOException | AssertionError e){
+            e.printStackTrace();
+            System.out.println("IO Exception: "+ e.toString());
+        }
+    }
 
 }

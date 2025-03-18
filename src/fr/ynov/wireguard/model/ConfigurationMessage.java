@@ -19,6 +19,7 @@ public class ConfigurationMessage extends Message {
         super(content, null, crypted,event);
         this.configuration = configuration;
     }
+    @Override
     public String getJSON() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(this);

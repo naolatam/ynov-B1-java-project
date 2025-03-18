@@ -1,5 +1,8 @@
 package fr.ynov.wireguard.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.net.Socket;
 
 public class Message {
@@ -23,7 +26,12 @@ public class Message {
         public Socket getOrigin() {
             return this.origin;
         }
-        public MessageEvent getEvent() {
+        public String getJSON() throws JsonProcessingException {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(this);
+        }
+
+    public MessageEvent getEvent() {
             return this.event;
         }
         public Boolean isCrypted() {

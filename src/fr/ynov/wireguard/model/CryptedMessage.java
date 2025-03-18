@@ -16,6 +16,7 @@ public class CryptedMessage extends Message {
     public CryptedMessage(String content, boolean crypted, MessageEvent event) {
         super(content, null, crypted, event);
     }
+    @Override
     public String getJSON() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(this);
