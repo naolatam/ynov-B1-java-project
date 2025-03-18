@@ -66,12 +66,13 @@ public class clientSocket extends Socket {
                     this.serverKey= new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
                     this.messages.add(confMessage);
                 }
-                if(msg.crypted == true){
+                if(msg.isCrypted()){
                     if(this.serverKey == null) {
                         this.askServerKey();
                         this.messages.add(msg);
                         continue;
                     }
+                    
 
                 }
             }

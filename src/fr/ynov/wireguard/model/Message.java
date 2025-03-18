@@ -6,7 +6,7 @@ public class Message {
         private MessageEvent event;
         private String content;
         private Socket origin;
-        public boolean crypted;
+        private boolean crypted;
 
         public Message(String content, Socket origin, boolean crypted, MessageEvent event) {
             this.content = content;
@@ -25,6 +25,9 @@ public class Message {
         }
         public MessageEvent getEvent() {
             return this.event;
+        }
+        public Boolean isCrypted() {
+            return this.crypted;
         }
 
 }
