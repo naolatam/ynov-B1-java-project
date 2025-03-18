@@ -15,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 
-public class serverSocket extends ServerSocket {
+public class serverSocket extends ServerSocket implements EncryptDecryptInterface {
 
     private SecretKey privateKey;
     private SecretKey publicKey;
@@ -24,7 +24,7 @@ public class serverSocket extends ServerSocket {
     // This is the constructor
     public serverSocket(int port) throws Exception {
         super(port);
-        new Thread(this::handleSocket).start();
+        new Thread(this::listenMessage).start();
     }
 
     public void setPrivateKey(SecretKey privateKey) {
@@ -32,8 +32,9 @@ public class serverSocket extends ServerSocket {
     }
 
     // This method is used to reply to the 'GET_PUBLIC_KEY' from clientSocket
-    public void sendServerKey(Socket socket) throws IOException {
+    public void sendServerKey(Socket socket) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException {
         String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
+        pubKey = this.encrypt(socket.getPubKey(), pubKey);
         ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
         sendMessage(confMessage);
     }

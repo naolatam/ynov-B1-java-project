@@ -10,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 
-public class ConfigurationMessage extends Message {
+public class ConfigurationMessage extends Message implements EncryptDecryptInterface{
 
     private final SocketConfiguration configuration;
 
@@ -23,21 +23,13 @@ public class ConfigurationMessage extends Message {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(this);
     }
-
-    public String decrypt(SecretKey privateKey) throws JsonProcessingException, NoSuchPaddingException, NoSuchAlgorithmException {
+    @Override
+    public String decrypt(SecretKey privateKey) throws Exception {
         if(configuration == SocketConfiguration.SEND_PUBLIC_KEY) {
-            try {
-                Cipher cipher = Cipher.getInstance("AES");
-                cipher.init(Cipher.DECRYPT_MODE, privateKey);
-                byte[] encryptedBytes = Base64.getDecoder().decode(this.getContent());
-                byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
-                this.setContent(decryptedBytes.toString());
-                this.crypted = false;
-                return decryptedBytes.toString();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+            String newContent = this.decrypt(privateKey, this.getContent());
+            this.setContent(newContent);
+            this.crypted = false;
+            return newContent;
         }
         return null;
     }
