@@ -10,7 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 
-public class CryptedMessage extends Message {
+public class CryptedMessage extends Message implements EncryptDecryptInterface {
 
 
     public CryptedMessage(String content, boolean crypted, MessageType event) {
@@ -22,31 +22,16 @@ public class CryptedMessage extends Message {
         return mapper.writeValueAsString(this);
     }
 
-    public String decrypt(SecretKey privateKey) throws {
-            try {
-                Cipher cipher = Cipher.getInstance("AES");
-                cipher.init(Cipher.DECRYPT_MODE, privateKey);
-                byte[] encryptedBytes = Base64.getDecoder().decode(this.getContent());
-                byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
-                this.setContent(decryptedBytes.toString());
-                this.crypted = false;
-                return decryptedBytes.toString();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+    public String decrypt(SecretKey privateKey) throws Exception {
+            String newContent = this.decrypt(privateKey, this.getContent());
+            this.setContent(newContent);
+            this.crypted = false;
+            return newContent;
     }
     public String encrypt(SecretKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException {
-        try {
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, privateKey);
-            byte[] contentBytes = this.getContent().getBytes();
-            byte[] crypted = cipher.doFinal(contentBytes);
-            this.setContent(crypted.toString());
-            this.crypted = true;
-            return crypted.toString();
-        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            throw new RuntimeException(e);
-        }
+        String newContent = this.encrypt(privateKey, this.getContent());
+        this.setContent(newContent);
+        this.crypted = true;
+        return newContent;
     }
 }

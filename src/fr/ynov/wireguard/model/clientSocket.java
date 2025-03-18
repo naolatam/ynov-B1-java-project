@@ -81,7 +81,7 @@ public class clientSocket extends Socket {
             System.out.println("IO Exception: "+ e.toString());
         } catch (NoSuchPaddingException e) {
             throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
