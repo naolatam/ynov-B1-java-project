@@ -1,6 +1,6 @@
 package fr.ynov.wireguard.model;
 
-public enum MessageEvent {
+public enum MessageType {
     CONFIG,
     MESSAGE
 }

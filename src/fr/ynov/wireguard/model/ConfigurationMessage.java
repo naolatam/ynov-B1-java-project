@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
@@ -15,7 +14,7 @@ public class ConfigurationMessage extends Message {
 
     private final SocketConfiguration configuration;
 
-    public ConfigurationMessage(String content, boolean crypted, MessageEvent event, SocketConfiguration configuration) {
+    public ConfigurationMessage(String content, boolean crypted, MessageType event, SocketConfiguration configuration) {
         super(content, null, crypted,event);
         this.configuration = configuration;
     }

@@ -13,7 +13,7 @@ import java.util.Base64;
 public class CryptedMessage extends Message {
 
 
-    public CryptedMessage(String content, boolean crypted, MessageEvent event) {
+    public CryptedMessage(String content, boolean crypted, MessageType event) {
         super(content, null, crypted, event);
     }
     @Override

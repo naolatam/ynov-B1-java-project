@@ -6,12 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.Socket;
 
 public class Message {
-        private MessageEvent event;
+        private MessageType event;
         private String content;
         private Socket origin;
         protected boolean crypted;
 
-        public Message(String content, Socket origin, boolean crypted, MessageEvent event) {
+        public Message(String content, Socket origin, boolean crypted, MessageType event) {
             this.content = content;
             this.origin = origin;
             this.crypted = crypted;
@@ -31,7 +31,7 @@ public class Message {
             return mapper.writeValueAsString(this);
         }
 
-    public MessageEvent getEvent() {
+    public MessageType getEvent() {
             return this.event;
         }
         public Boolean isCrypted() {

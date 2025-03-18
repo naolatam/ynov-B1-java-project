@@ -10,9 +10,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -35,7 +33,7 @@ public class clientSocket extends Socket {
 
     public void askServerKey() throws IOException {
         String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
-        ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, false, MessageEvent.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
+        ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
         sendMessage(confMessage);
     }
 
@@ -50,7 +48,7 @@ public class clientSocket extends Socket {
                 System.out.println("New line: " +line);
                 msg = mapper.readValue(line, Message.class);
 
-                if(msg.getEvent() == MessageEvent.CONFIG) {
+                if(msg.getEvent() == MessageType.CONFIG) {
                     confMessage = mapper.readValue(line, ConfigurationMessage.class);
                     confMessage.decrypt(this.privateKey);
                     if(confMessage.getContent() == null) {
@@ -93,7 +91,7 @@ public class clientSocket extends Socket {
         if(crypted) {
             try {
 
-                CryptedMessage cMsg = new CryptedMessage(content, crypted, MessageEvent.MESSAGE);
+                CryptedMessage cMsg = new CryptedMessage(content, crypted, MessageType.MESSAGE);
                 cMsg.encrypt(this.serverKey);
                 msg = cMsg;
             } catch (Exception e) {
@@ -101,7 +99,7 @@ public class clientSocket extends Socket {
                 sendMessage(content, false);
             }
         }else {
-            msg = new Message(content, this, crypted, MessageEvent.MESSAGE);
+            msg = new Message(content, this, crypted, MessageType.MESSAGE);
         }
         sendMessage(msg);
     }
