@@ -42,10 +42,13 @@ public class CustomSocket {
             OutputStream output = this.socket.getOutputStream();
             assert msg != null;
             output.write(msg.getJSON().getBytes());
+            this.messages.add(msg);
         } catch (IOException | AssertionError e){
             e.printStackTrace();
             System.out.println("IO Exception: "+ e.toString());
         }
     }
-
+    public List<Message> getMessages() {
+        return this.messages;
+    }
 }
