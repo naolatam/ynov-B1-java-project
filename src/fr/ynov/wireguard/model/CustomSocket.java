@@ -14,10 +14,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 
-public class CustomSocket {
+public class CustomSocket extends Socket {
 
     private SecretKey publicKey;
-    private Socket socket;
     private List<Message> messages;
 
 

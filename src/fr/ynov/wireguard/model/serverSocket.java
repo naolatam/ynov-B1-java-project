@@ -24,7 +24,7 @@ public class serverSocket extends ServerSocket implements EncryptDecryptInterfac
     // This is the constructor
     public serverSocket(int port) throws Exception {
         super(port);
-        new Thread(this::listenMessage).start();
+        new Thread(this::handleConnection).start();
     }
 
     public void setPrivateKey(SecretKey privateKey) {
@@ -32,60 +32,35 @@ public class serverSocket extends ServerSocket implements EncryptDecryptInterfac
     }
 
     // This method is used to reply to the 'GET_PUBLIC_KEY' from clientSocket
-    public void sendServerKey(Socket socket) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException {
+    public void sendServerKey(CustomSocket socket) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException {
         String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
-        pubKey = this.encrypt(socket.getPubKey(), pubKey);
-        ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
-        sendMessage(confMessage);
+        pubKey = this.encrypt(socket.getPublicKey(), pubKey);
+        ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, true, MessageType.CONFIG, SocketConfiguration.SEND_PUBLIC_KEY);
+        socket.sendMessage(confMessage);
     }
 
-    private void listenMessage() {
-        try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(this.getInputStream()));
-            Message msg;
-            ConfigurationMessage confMessage;
-            String line;
-            ObjectMapper mapper = new ObjectMapper();
-            while (this.isConnected() && (line = in.readLine()) != null) {
-                System.out.println("New line: " +line);
-                msg = mapper.readValue(line, Message.class);
-
-                if(msg.getEvent() == MessageType.CONFIG) {
-                    confMessage = mapper.readValue(line, ConfigurationMessage.class);
-                    confMessage.decrypt(this.privateKey);
-                    if(confMessage.getContent() == null) {
-                        askServerKey();
-                        continue;
+    private void handleConnection() {
+        while(true) {
+            try (CustomSocket socket = (CustomSocket) this.accept()) {
+                new Thread(() -> {
+                    try {
+                        this.handleMessage(socket);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoSuchPaddingException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoSuchAlgorithmException e) {
+                        throw new RuntimeException(e);
                     }
-                    this.serverKey= new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
-                    this.messages.add(confMessage);
-                }
-                if(msg.isCrypted()){
-                    if(this.privateKey == null) {
-                        this.messages.add(msg);
-                        continue;
-                    }
-                    CryptedMessage cMsg = (CryptedMessage) msg;
-                    cMsg.decrypt(this.privateKey);
-                    if(cMsg.getContent() == null) {
-                        this.askServerKey();
-                        this.messages.add(msg);
-                        continue;
-                    }
-                    this.messages.add(cMsg);
-                    continue;
-                }
-                this.messages.add(msg);
-                continue;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("IO Exception: "+ e.toString());
-        } catch (NoSuchPaddingException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+                }).start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } ;
         }
+    }
+
+    private void handleMessage(CustomSocket socket) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException {
+
     }
 
     public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException {
