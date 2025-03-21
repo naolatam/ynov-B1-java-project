@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/vpn.iml" filepath="$PROJECT_DIR$/vpn.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vpnClient/vpnClient.iml" filepath="$PROJECT_DIR$/vpnClient/vpnClient.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vpnModel/vpnModel.iml" filepath="$PROJECT_DIR$/vpnModel/vpnModel.iml" />
     </modules>
   </component>
 </project>

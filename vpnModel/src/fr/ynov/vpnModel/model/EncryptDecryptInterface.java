@@ -1,12 +1,4 @@
-package fr.ynov.wireguard.model;
-
-import javax.crypto.*;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+package fr.ynov.vpnModel.model;
 
 import javax.crypto.*;
 import java.security.InvalidKeyException;

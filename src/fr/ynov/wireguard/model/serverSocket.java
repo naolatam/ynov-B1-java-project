@@ -1,13 +1,9 @@
 package fr.ynov.wireguard.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;

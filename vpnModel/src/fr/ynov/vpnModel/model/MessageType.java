@@ -1,4 +1,4 @@
-package fr.ynov.wireguard.model;
+package fr.ynov.vpnModel.model;
 
 public enum MessageType {
     CONFIG,

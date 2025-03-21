@@ -1,10 +1,7 @@
-package fr.ynov.wireguard.model;
+package fr.ynov.vpnModel.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import javax.crypto.SecretKey;
-import java.net.Socket;
 
 public class Message {
         private MessageType event;
