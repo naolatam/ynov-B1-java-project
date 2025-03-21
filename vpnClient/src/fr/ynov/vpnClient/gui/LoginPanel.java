@@ -83,9 +83,10 @@ public class LoginPanel extends JPanel {
     private void connectToServer(ActionEvent e) {
         String fqdn = txtHost.getText();
         if(fqdn.indexOf(".") == -1) {
-             ErrorFrame.showError("Invalid FQDN");
+             ErrorFrame.showError("Invalid FQDN/IP");
             return;
         }
+
         int port = Integer.parseInt(spPort.getValue().toString());
         btnConnect.setText(fqdn + ":" + port);
     }
