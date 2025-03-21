@@ -9,20 +9,24 @@ import java.util.List;
 
 public class MainFrame extends JFrame {
     private final LoginPanel lp = new LoginPanel(this);
+    private final String title;
     private CardLayout cl;
     private JPanel mainPanel;
 
     private List<ClientSocket> csList = new ArrayList<>();
     public MainFrame() {
         super();
+        this.title = "VPN Client";
         init();
     }
     public MainFrame(String title) {
         super(title);
+        this.title = title;
         init();
     }
 
     private void init() {
+        setTitle(title);
 
         getContentPane().removeAll();
         cl = new CardLayout();

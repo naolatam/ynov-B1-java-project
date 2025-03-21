@@ -2,10 +2,14 @@ package fr.ynov.vpnClient.gui;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 
 
 public class LoginPanel extends JPanel {
 
+    private JTextField txtHost;
+    private JSpinner spPort;
+    private JButton btnConnect;
     private final MainFrame mf;
 
 
@@ -32,7 +36,7 @@ public class LoginPanel extends JPanel {
         add(lblHost, gbc);
 
         gbc.gridx = 1;
-        JTextField txtHost = new JTextField(15);
+        txtHost = new JTextField(15);
         styleTextField(txtHost);
         add(txtHost, gbc);
 
@@ -43,16 +47,21 @@ public class LoginPanel extends JPanel {
         add(lblPort, gbc);
 
         gbc.gridx = 1;
-        JTextField txtPort = new JTextField(15);
-        styleTextField(txtPort);
-        add(txtPort, gbc);
+        spPort = new JSpinner(new SpinnerNumberModel(0, 0, 65535, 1));
+        spPort.setFont(new Font("Arial", Font.PLAIN, 14));
+        spPort.setForeground(StyleSet.inputTextColor);
+        spPort.setBackground(StyleSet.inputBackgroundColor);
+        spPort.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        add(spPort, gbc);
 
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
-        JButton btnConnect = new JButton("Connect");
+        btnConnect = new JButton("Connect");
         styleButton(btnConnect);
         add(btnConnect, gbc);
+
+        btnConnect.addActionListener(this::connectToServer);
 
     }
 
@@ -71,7 +80,13 @@ public class LoginPanel extends JPanel {
         button.setFocusPainted(false);
     }
 
-    private void connectToServer() {
-
+    private void connectToServer(ActionEvent e) {
+        String fqdn = txtHost.getText();
+        if(fqdn.indexOf(".") == -1) {
+             ErrorFrame.showError("Invalid FQDN");
+            return;
+        }
+        int port = Integer.parseInt(spPort.getValue().toString());
+        btnConnect.setText(fqdn + ":" + port);
     }
 }
