@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainFrame extends JFrame {
+    private final LoginPanel lp = new LoginPanel(this);
     private CardLayout cl;
     private JPanel mainPanel;
 
@@ -31,7 +32,15 @@ public class MainFrame extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        if(csList.isEmpty()) {
+            showLoginPanel();
+        }
         add(mainPanel);
+    }
+
+    public void showLoginPanel() {
+        setTitle("Login");
+        mainPanel.add(lp, "Login");
     }
 
 
