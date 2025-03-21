@@ -17,11 +17,13 @@ import java.util.List;
 public class CustomSocket extends Socket {
 
     private SecretKey publicKey;
+    private SecretKey serverKey;
+
     private List<Message> messages;
 
 
-    public CustomSocket(Socket s) {
-        this.socket = s;
+    public CustomSocket(SecretKey serverKey) {
+        this.serverKey = serverKey;
     }
 
     public void setPublicKey(SecretKey publicKey) {
@@ -32,13 +34,13 @@ public class CustomSocket extends Socket {
         return this.publicKey;
     }
 
-    public void sendMessage(String content, Socket origin, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException {
-        Message msg = new Message(content, origin, crypted, MessageType.MESSAGE);
+    public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException {
+        Message msg = new Message(content, Origin.SERVER, crypted, MessageType.MESSAGE);
         sendMessage(msg);
     }
     public void sendMessage(Message msg) throws IOException, AssertionError {
         try {
-            OutputStream output = this.socket.getOutputStream();
+            OutputStream output = this.getOutputStream();
             assert msg != null;
             output.write(msg.getJSON().getBytes());
             this.messages.add(msg);
@@ -47,7 +49,33 @@ public class CustomSocket extends Socket {
             System.out.println("IO Exception: "+ e.toString());
         }
     }
+
+    public Message listenForMessage() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException {
+        try {
+            BufferedReader in = new BufferedReader(new InputStreamReader(this.getInputStream()));
+            Message msg;
+            ConfigurationMessage confMessage;
+            String line;
+            ObjectMapper mapper = new ObjectMapper();
+            while (this.isConnected() && (line = in.readLine()) != null) {
+                System.out.println("New line: " +line);
+                msg = mapper.readValue(line, Message.class);
+                return msg;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("IO Exception: "+ e.toString());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
     public List<Message> getMessages() {
         return this.messages;
+    }
+    public void addMessage(Message msg) {
+        this.messages.add(msg);
     }
 }

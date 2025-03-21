@@ -33,7 +33,7 @@ public class clientSocket extends Socket {
 
     public void askServerKey() throws IOException {
         String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
-        ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
+        ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
         sendMessage(confMessage);
     }
 
@@ -91,7 +91,7 @@ public class clientSocket extends Socket {
         if(crypted) {
             try {
 
-                CryptedMessage cMsg = new CryptedMessage(content, crypted, MessageType.MESSAGE);
+                CryptedMessage cMsg = new CryptedMessage(content, Origin.CLIENT, crypted, MessageType.MESSAGE);
                 cMsg.encrypt(this.serverKey);
                 msg = cMsg;
             } catch (Exception e) {
@@ -99,7 +99,7 @@ public class clientSocket extends Socket {
                 sendMessage(content, false);
             }
         }else {
-            msg = new Message(content, this, crypted, MessageType.MESSAGE);
+            msg = new Message(content, Origin.CLIENT, crypted, MessageType.MESSAGE);
         }
         sendMessage(msg);
     }

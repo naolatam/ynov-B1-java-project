@@ -38,4 +38,5 @@ public interface EncryptDecryptInterface {
             throw new RuntimeException(e);
         }
     }
+
 }

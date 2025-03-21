@@ -3,15 +3,16 @@ package fr.ynov.wireguard.model;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.crypto.SecretKey;
 import java.net.Socket;
 
 public class Message {
         private MessageType event;
         private String content;
-        private Socket origin;
+        private Origin origin;
         protected boolean crypted;
 
-        public Message(String content, Socket origin, boolean crypted, MessageType event) {
+        public Message(String content, Origin origin, boolean crypted, MessageType event) {
             this.content = content;
             this.origin = origin;
             this.crypted = crypted;
@@ -23,7 +24,7 @@ public class Message {
         public void setContent(String content) {
             this.content = content;
         }
-        public Socket getOrigin() {
+        public Origin getOrigin() {
             return this.origin;
         }
         public String getJSON() throws JsonProcessingException {
