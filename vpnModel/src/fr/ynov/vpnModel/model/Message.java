@@ -2,7 +2,10 @@ package fr.ynov.vpnModel.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.DataInput;
 
 public class Message {
         private MessageType event;
@@ -10,7 +13,11 @@ public class Message {
         private Origin origin;
         protected boolean crypted;
 
-        public Message(String content, Origin origin, boolean crypted, MessageType event) {
+    public Message() {
+    }
+
+
+    public Message(String content, Origin origin, boolean crypted, MessageType event) {
             this.content = content;
             this.origin = origin;
             this.crypted = crypted;
@@ -40,5 +47,8 @@ public class Message {
         public Boolean isCrypted() {
             return this.crypted;
         }
+
+
+
 
 }
