@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/vpn.iml" filepath="$PROJECT_DIR$/vpn.iml" />
       <module fileurl="file://$PROJECT_DIR$/vpnClient/vpnClient.iml" filepath="$PROJECT_DIR$/vpnClient/vpnClient.iml" />
       <module fileurl="file://$PROJECT_DIR$/vpnModel/vpnModel.iml" filepath="$PROJECT_DIR$/vpnModel/vpnModel.iml" />
+      <module fileurl="file://$PROJECT_DIR$/vpnServer/vpnServer.iml" filepath="$PROJECT_DIR$/vpnServer/vpnServer.iml" />
     </modules>
   </component>
 </project>

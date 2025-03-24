@@ -1,4 +1,13 @@
-package fr.ynov.wireguard.model;
+package fr.ynov.vpnServer.model;
+
+import fr.ynov.vpnModel.model.Message;
+import fr.ynov.vpnModel.model.CryptedMessage;
+import fr.ynov.vpnModel.model.ConfigurationMessage;
+import fr.ynov.vpnModel.model.MessageType;
+import fr.ynov.vpnModel.model.SocketConfiguration;
+import fr.ynov.vpnModel.model.Origin;
+import fr.ynov.vpnModel.model.EncryptDecryptInterface;
+
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
@@ -84,7 +93,8 @@ public class serverSocket extends ServerSocket implements EncryptDecryptInterfac
         }
     }
 
-    public void sendMessage(String content, Boolean crypted, CustomSocket socket) throws IOException, AssertionError, NoSuchAlgorithmException {
+    public void sendMessage(String content, Boolean crypted, CustomSocket socket)
+            throws IOException, AssertionError, NoSuchAlgorithmException {
         Message msg = null;
         if(crypted) {
             try {
@@ -98,6 +108,7 @@ public class serverSocket extends ServerSocket implements EncryptDecryptInterfac
         }else {
             msg = new Message(content, Origin.SERVER, crypted, MessageType.MESSAGE);
         }
+        assert msg != null;
         sendMessage(msg, socket);
     }
     public void sendMessage(Message msg, CustomSocket socket) throws IOException, AssertionError {
