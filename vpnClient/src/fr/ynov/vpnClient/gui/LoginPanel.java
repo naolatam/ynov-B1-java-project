@@ -123,7 +123,7 @@ public class LoginPanel extends JPanel {
                     ErrorFrame.showError("Unexcepted error : " + ex.getMessage());
                 }
                 SwingUtilities.invokeLater(() ->  btnConnect.setText("Connect"));
-                SwingUtilities.invokeLater(() ->          btnConnect.setEnabled(true));
+                SwingUtilities.invokeLater(() ->  btnConnect.setEnabled(true));
             }
         }.execute();
 
