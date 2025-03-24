@@ -39,13 +39,20 @@ public class ClientSocket extends Socket {
     }
 
     public void setPrivateKey(SecretKey privateKey) {
+        this.publicKey = privateKey;
         this.privateKey = privateKey;
     }
 
-    public void askServerKey() throws IOException {
-        String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
-        ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
-        sendMessage(confMessage);
+    public void askServerKey() {
+        try {
+            String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
+            ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
+            sendMessage(confMessage);
+        } catch (IOException ex) {
+            try {this.close();} catch (IOException ex1) {}
+            System.out.println(ex.getMessage());
+
+        }
     }
 
     private void listenMessage() {
