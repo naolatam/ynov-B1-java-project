@@ -4,15 +4,19 @@ import fr.ynov.vpnClient.model.ClientSocket;
 import fr.ynov.vpnClient.utils.Utils;
 import fr.ynov.vpnModel.gui.StyleSet;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 
 public class LoginPanel extends JPanel {
 
-    private JTextField txtHost;
+    private JTextField txtHost, txtKey;
     private JSpinner spPort;
     private JButton btnConnect;
     private final MainFrame mf;
@@ -59,6 +63,20 @@ public class LoginPanel extends JPanel {
         spPort.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         add(spPort, gbc);
 
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel lblKey = new JLabel("AES Key:");
+        lblKey.setForeground(StyleSet.labelTextColor);
+        add(lblKey, gbc);
+
+        gbc.gridx = 1;
+        txtKey = new JTextField(15);
+        styleTextField(txtKey);
+        add(txtKey, gbc);
+        txtKey.setEditable(false);
+        txtKey.setText(generateKey().getEncoded().toString());
+
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
@@ -101,6 +119,7 @@ public class LoginPanel extends JPanel {
                 }
                 try {
                     ClientSocket socket = new ClientSocket(fqdn, port );
+                    socket.setPrivateKey(new SecretKeySpec(txtKey.getText().getBytes(), "AES"));
                     mf.addSocket(socket);
                     return 0; // Succès
                 } catch (IOException | InterruptedException ex) {
@@ -129,4 +148,19 @@ public class LoginPanel extends JPanel {
         }.execute();
 
     }
+
+    private SecretKey generateKey() {
+        try {
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+
+            // Initialize the KeyGenerator with a key size (128, 192, or 256 bits)
+            keyGen.init(256);  // AES supports key sizes: 128, 192, or 256 bits
+
+            // Generate the AES secret key
+            return keyGen.generateKey();
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println(ex.getMessage());
+        }
+        return null;
+    };
 }

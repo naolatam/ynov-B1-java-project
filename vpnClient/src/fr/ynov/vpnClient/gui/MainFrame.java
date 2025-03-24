@@ -4,6 +4,7 @@ import fr.ynov.vpnClient.model.ClientSocket;
 
 import javax.swing.*;
 import java.awt.*;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class MainFrame extends JFrame {
 
     private List<ClientSocket> csList = new ArrayList<>();
 
-    public MainFrame() {
+    public MainFrame()  {
         super();
         this.title = "VPN Client";
         init();
@@ -49,7 +50,7 @@ public class MainFrame extends JFrame {
         mainPanel.add(lp, "Login");
     }
     public void showMainPanel() {
-        setTitle("Logged");
+        setTitle(title);
         mainPanel.add(lp2, "Login");
     }
     public void addSocket(ClientSocket cs) {

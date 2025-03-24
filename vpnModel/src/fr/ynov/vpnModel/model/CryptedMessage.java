@@ -1,6 +1,7 @@
 package fr.ynov.vpnModel.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,6 +16,7 @@ public class CryptedMessage extends Message implements EncryptDecryptInterface {
         super(content, origin, crypted, event);
     }
     @Override
+    @JsonIgnore
     public String getJSON() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(this);

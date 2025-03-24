@@ -1,6 +1,7 @@
 package fr.ynov.vpnModel.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,6 +17,7 @@ public class ConfigurationMessage extends Message implements EncryptDecryptInter
         this.configuration = configuration;
     }
     @Override
+    @JsonIgnore
     public String getJSON() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.writeValueAsString(this);
