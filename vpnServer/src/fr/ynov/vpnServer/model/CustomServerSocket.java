@@ -59,7 +59,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
             try {
                 Socket s = this.accept();
                 CustomSocket socket = new CustomSocket(s);
-
+                onConnect(socket);
                 new Thread(() -> {
                     try {
                         this.handleMessage(socket);
@@ -75,7 +75,8 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 }).start();
             } catch (IOException e) {
                 throw new RuntimeException(e);
-            } ;
+            }
+            ;
         }
     }
 
@@ -98,9 +99,14 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                     }
                     socket.addMessage(msg);
                 }
+                onMessage(socket, msg);
             }catch (Exception e) {
+
                 e.printStackTrace();
             }
+        }
+        if(socket.getSocket().isClosed()) {
+            onDisconnect(socket);
         }
     }
 
@@ -135,22 +141,30 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
 
     @Override
     public void onMessage(CustomSocket cs, Message message) {
-            this.onMessage(cs, message);
+        if(onMessage != null) {
+            this.onMessage.accept(cs, message);
+        }
     }
 
     @Override
     public void onConnect(CustomSocket socket) {
-        this.onConnect(socket);
+        if(onConnect != null) {
+            this.onConnect.apply(socket);
+        }
     }
 
     @Override
     public void onDisconnect(CustomSocket socket) {
-        this.onDisconnect(socket);
+        if(onDisconnect != null) {
+            this.onDisconnect.apply(socket);
+        }
     }
 
     @Override
     public void onError(CustomSocket socket) {
-        this.onError(socket);
+        if(onError != null) {
+            this.onError.apply(socket);
+        }
     }
 
     @Override
