@@ -31,7 +31,9 @@ public class Message {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.writeValueAsString(this);
         }
-
+    public boolean getCrypted() {
+            return this.crypted;
+    }
     public MessageType getEvent() {
             return this.event;
         }

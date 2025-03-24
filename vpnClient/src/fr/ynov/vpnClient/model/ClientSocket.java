@@ -6,10 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
@@ -123,9 +120,9 @@ public class ClientSocket extends Socket {
     }
     public void sendMessage(Message msg) throws IOException, AssertionError {
         try {
-            OutputStream output = this.getOutputStream();
+            PrintWriter out = new PrintWriter(getOutputStream(), true);
             assert msg != null;
-            output.write(msg.getJSON().getBytes());
+            out.println(msg.getJSON());
         } catch (IOException | AssertionError e){
             e.printStackTrace();
             System.out.println("IO Exception: "+ e.toString());
