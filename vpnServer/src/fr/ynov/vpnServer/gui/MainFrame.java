@@ -43,6 +43,9 @@ public class MainFrame  extends JFrame {
     private void showSetupPanel() {
         mainPanel.add(sp, "setup");
     }
+    public void showMainPanel() {
+        mainPanel.add(sp, "setup");
+    }
 
     public void setServerSocket(ServerSocket ss) {
         this.ss = ss;
