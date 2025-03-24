@@ -61,5 +61,8 @@ public class MainFrame  extends JFrame {
         this.ss = ss;
     }
 
+    private void setListener() {
+        
+    }
 
 }
