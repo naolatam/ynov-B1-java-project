@@ -1,4 +1,4 @@
-package fr.ynov.vpnClient.gui;
+package fr.ynov.vpnModel.gui;
 
 import java.awt.*;
 

@@ -1,5 +1,7 @@
 package fr.ynov.vpnClient.gui;
 
+import fr.ynov.vpnModel.gui.StyleSet;
+
 import javax.swing.*;
 import java.awt.*;
 
