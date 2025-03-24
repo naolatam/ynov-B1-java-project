@@ -78,7 +78,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     }
 
     private void handleMessage(CustomSocket socket) throws Exception {
-        while (socket.isConnected()) {
+        while (socket.getSocket().isConnected()) {
             try {
                 Message msg = socket.listenForMessage();
                 if (msg != null) {
@@ -122,7 +122,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     }
     public void sendMessage(Message msg, CustomSocket socket) throws IOException, AssertionError {
         try {
-            OutputStream output = socket.getOutputStream();
+            OutputStream output = socket.getSocket().getOutputStream();
             assert msg != null;
             output.write(msg.getJSON().getBytes());
         } catch (IOException | AssertionError e){
