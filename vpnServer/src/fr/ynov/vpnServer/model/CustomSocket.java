@@ -1,4 +1,4 @@
-package fr.ynov.wireguard.model;
+package fr.ynov.vpnServer.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -11,6 +11,14 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import fr.ynov.vpnModel.model.Message;
+import fr.ynov.vpnModel.model.CryptedMessage;
+import fr.ynov.vpnModel.model.ConfigurationMessage;
+import fr.ynov.vpnModel.model.MessageType;
+import fr.ynov.vpnModel.model.SocketConfiguration;
+import fr.ynov.vpnModel.model.Origin;
+import fr.ynov.vpnModel.model.EncryptDecryptInterface;
+
 
 public class CustomSocket extends Socket {
 
@@ -56,16 +64,17 @@ public class CustomSocket extends Socket {
             String line;
             ObjectMapper mapper = new ObjectMapper();
             while (this.isConnected() && (line = in.readLine()) != null) {
-                System.out.println("New line: " +line);
+                System.out.println("New line: " + line);
                 msg = mapper.readValue(line, Message.class);
                 return msg;
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("IO Exception: "+ e.toString());
+            System.out.println("IO Exception: " + e.toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return null;
     }
 
 
