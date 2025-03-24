@@ -1,5 +1,6 @@
 package fr.ynov.vpnServer.gui;
 
+import com.sun.jdi.VoidType;
 import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
 
@@ -8,6 +9,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.function.Function;
 
 
 public class SetupPanel extends JPanel {
@@ -15,7 +17,6 @@ public class SetupPanel extends JPanel {
     private JSpinner spPort;
     private JButton btnStart;
     private final MainFrame mf;
-
 
     public SetupPanel(MainFrame parent) {
         this.mf = parent;
