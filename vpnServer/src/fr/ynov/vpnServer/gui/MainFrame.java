@@ -41,15 +41,19 @@ public class MainFrame  extends JFrame {
         }else {
             showMainPanel();
         }
+
+        mainPanel.add(sp, "sp");
+        mainPanel.add(mp, "main");
+
         add(mainPanel);
     }
 
     private void showSetupPanel() {
-        mainPanel.add(sp, "setup");
+        cl.show(mainPanel, "sp");
     }
     public void showMainPanel() {
-        removeAll();
-        SwingUtilities.invokeLater(() -> {mainPanel.add(mp, "mainPanel");});
+        cl.show(mainPanel, "main");
+
 
     }
 

@@ -104,7 +104,7 @@ public class SetupPanel extends JPanel {
                     Integer success = get();
                     if (success==0) {
                         SuccessFrame.showSuccess("Server socket started on port: " + port);
-                        SwingUtilities.invokeLater(mf::showMainPanel);
+                        mf.showMainPanel();
                     } else if(success==-1) {
                         ErrorFrame.showError("Unable to connect using port:" +  port + "!");
                     }
