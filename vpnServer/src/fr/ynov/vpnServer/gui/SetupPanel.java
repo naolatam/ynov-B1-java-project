@@ -90,6 +90,7 @@ public class SetupPanel extends JPanel {
                 try {
                     ServerSocket socket = new ServerSocket( port );
                     mf.setServerSocket(socket);
+                    SuccessFrame.showSuccess("Server socket started on port: " + port);
                     return 0; // Succès
                 } catch (IOException ex) {
                     return -1; // Échec
