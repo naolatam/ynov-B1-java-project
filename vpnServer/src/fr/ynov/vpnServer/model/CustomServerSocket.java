@@ -19,6 +19,7 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class CustomServerSocket extends ServerSocket implements EncryptDecryptInterface,EventInterface {
@@ -26,6 +27,12 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     private SecretKey privateKey;
     private SecretKey publicKey;
     private List<Socket> clients;
+
+    private BiConsumer<CustomSocket, Message> onMessage;
+    private Function<CustomSocket, Void> onConnect;
+    private Function<CustomSocket, Void> onDisconnect;
+    private Function<CustomSocket, Void> onError;
+
 
     // This is the constructor
     public CustomServerSocket(int port) throws Exception {
@@ -49,7 +56,8 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
 
     private void handleConnection() {
         while(this.isBound()) {
-            try (CustomSocket socket = (CustomSocket) this.accept()) {
+            try (Socket s = this.accept();) {
+                CustomSocket socket = new CustomSocket(s);
                 new Thread(() -> {
                     try {
                         this.handleMessage(socket);
@@ -124,42 +132,43 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     }
 
     @Override
-    public void onMessage(Message message) {
-
+    public void onMessage(CustomSocket cs, Message message) {
+            this.onMessage(cs, message);
     }
 
     @Override
     public void onConnect(CustomSocket socket) {
-
+        this.onConnect(socket);
     }
 
     @Override
     public void onDisconnect(CustomSocket socket) {
-
+        this.onDisconnect(socket);
     }
 
     @Override
     public void onError(CustomSocket socket) {
-
+        this.onError(socket);
     }
 
     @Override
-    public void setOnMessage(Function<Message, Void> onMessage) {
-
+    public void setOnMessage(BiConsumer<CustomSocket, Message> onMessage) {
+        this.onMessage = onMessage;
     }
 
     @Override
     public void setOnConnect(Function<CustomSocket, Void> onConnect) {
+        this.onConnect = onConnect;
 
     }
 
     @Override
     public void setOnDisconnect(Function<CustomSocket, Void> onDisconnect) {
-
+        this.onDisconnect = onDisconnect;
     }
 
     @Override
     public void setOnError(Function<CustomSocket, Void> onError) {
-
+        this.onError = onError;
     }
 }

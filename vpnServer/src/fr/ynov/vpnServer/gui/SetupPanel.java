@@ -4,6 +4,7 @@ import com.sun.jdi.VoidType;
 import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.gui.SuccessFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
+import fr.ynov.vpnServer.model.CustomServerSocket;
 
 import javax.swing.*;
 import java.awt.*;
@@ -88,7 +89,7 @@ public class SetupPanel extends JPanel {
             protected Integer doInBackground() {
 
                 try {
-                    ServerSocket socket = new ServerSocket( port );
+                    CustomServerSocket socket = new CustomServerSocket( port );
                     mf.setServerSocket(socket);
                     return 0; // Succès
                 } catch (IOException ex) {

@@ -1,11 +1,15 @@
 package fr.ynov.vpnServer.gui;
 
+import fr.ynov.vpnServer.model.CustomServerSocket;
+import fr.ynov.vpnServer.model.CustomSocket;
+
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 import java.net.ServerSocket;
 
 public class MainFrame  extends JFrame {
-    private ServerSocket ss = null;
+    private CustomServerSocket ss = null;
     private final SetupPanel sp = new SetupPanel(this);
     private final MainPanel mp = new MainPanel();
 
@@ -57,12 +61,19 @@ public class MainFrame  extends JFrame {
 
     }
 
-    public void setServerSocket(ServerSocket ss) {
+    public void setServerSocket(CustomServerSocket ss) throws IOException {
+        if(this.ss != null && ss.isClosed()) {
+            this.ss.close();
+        }
         this.ss = ss;
+        setListener();
     }
 
     private void setListener() {
-
+        this.ss.setOnConnect((CustomSocket cs) -> {
+            System.out.println(cs);
+            return null;
+        });
     }
 
 }
