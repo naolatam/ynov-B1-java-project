@@ -56,8 +56,10 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
 
     private void handleConnection() {
         while(this.isBound()) {
-            try (Socket s = this.accept();) {
+            try {
+                Socket s = this.accept();
                 CustomSocket socket = new CustomSocket(s);
+
                 new Thread(() -> {
                     try {
                         this.handleMessage(socket);
