@@ -1,8 +1,12 @@
 package fr.ynov.vpnClient.gui;
 
+import fr.ynov.vpnClient.model.ClientSocket;
+import fr.ynov.vpnClient.utils.Utils;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 
 
 public class LoginPanel extends JPanel {
@@ -47,7 +51,7 @@ public class LoginPanel extends JPanel {
         add(lblPort, gbc);
 
         gbc.gridx = 1;
-        spPort = new JSpinner(new SpinnerNumberModel(0, 0, 65535, 1));
+        spPort = new JSpinner(new SpinnerNumberModel(1024, 0, 49151, 1));
         spPort.setFont(new Font("Arial", Font.PLAIN, 14));
         spPort.setForeground(StyleSet.inputTextColor);
         spPort.setBackground(StyleSet.inputBackgroundColor);
@@ -81,13 +85,47 @@ public class LoginPanel extends JPanel {
     }
 
     private void connectToServer(ActionEvent e) {
-        String fqdn = txtHost.getText();
-        if(fqdn.indexOf(".") == -1) {
-             ErrorFrame.showError("Invalid FQDN/IP");
-            return;
-        }
+        SwingUtilities.invokeLater(() ->  btnConnect.setText("Connecting..."));
+        SwingUtilities.invokeLater(() ->  btnConnect.setEnabled(false));
 
+        String fqdn = txtHost.getText();
         int port = Integer.parseInt(spPort.getValue().toString());
-        btnConnect.setText(fqdn + ":" + port);
+
+        new SwingWorker<Integer, Void>() {
+            @Override
+            protected Integer doInBackground() {
+                if(!Utils.isValidFQDNorIP(fqdn)) {
+                    ErrorFrame.showError("Invalid FQDN/IP");
+                    return -2;
+                }
+                try {
+                    ClientSocket socket = new ClientSocket(fqdn, port );
+                    mf.addSocket(socket);
+                    return 0; // Succès
+                } catch (IOException | InterruptedException ex) {
+                    return -1; // Échec
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    Integer success = get();
+                    if (success==0) {
+                        JOptionPane.showMessageDialog(LoginPanel.this, "Connexion réussi !", "Erreur", JOptionPane.ERROR_MESSAGE);
+
+                    } else if(success==-1) {
+                        ErrorFrame.showError("Unable to connect to " + fqdn + ":" + port + "!");
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(LoginPanel.this, "Erreur inattendue : " + ex.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+                }
+                SwingUtilities.invokeLater(() ->  btnConnect.setText("Connect"));
+                SwingUtilities.invokeLater(() ->          btnConnect.setEnabled(true));
+            }
+        }.execute();
+
     }
 }

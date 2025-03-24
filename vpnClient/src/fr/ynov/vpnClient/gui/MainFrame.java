@@ -14,6 +14,7 @@ public class MainFrame extends JFrame {
     private JPanel mainPanel;
 
     private List<ClientSocket> csList = new ArrayList<>();
+
     public MainFrame() {
         super();
         this.title = "VPN Client";
@@ -46,6 +47,8 @@ public class MainFrame extends JFrame {
         setTitle("Login");
         mainPanel.add(lp, "Login");
     }
-
+    public void addSocket(ClientSocket cs) {
+        this.csList.add(cs);
+    }
 
 }
