@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -32,7 +33,7 @@ public class ClientSocket extends Socket {
 
 
     public ClientSocket(String host, int port) throws Exception {
-        super(host, port);
+        connect(new InetSocketAddress(host, port), 5000);
         new Thread(this::listenMessage).start();
     }
 
