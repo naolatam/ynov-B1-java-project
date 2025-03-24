@@ -7,6 +7,8 @@ import java.net.ServerSocket;
 public class MainFrame  extends JFrame {
     private ServerSocket ss = null;
     private final SetupPanel sp = new SetupPanel(this);
+    private final MainPanel mp = new MainPanel();
+
     private final String title;
     private CardLayout cl;
     private JPanel mainPanel;
@@ -36,6 +38,8 @@ public class MainFrame  extends JFrame {
 
         if(ss == null) {
             showSetupPanel();
+        }else {
+            showMainPanel();
         }
         add(mainPanel);
     }
@@ -44,7 +48,9 @@ public class MainFrame  extends JFrame {
         mainPanel.add(sp, "setup");
     }
     public void showMainPanel() {
-        mainPanel.add(sp, "setup");
+        removeAll();
+        SwingUtilities.invokeLater(() -> {mainPanel.add(mp, "mainPanel");});
+
     }
 
     public void setServerSocket(ServerSocket ss) {

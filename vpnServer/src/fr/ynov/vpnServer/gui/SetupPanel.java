@@ -90,7 +90,6 @@ public class SetupPanel extends JPanel {
                 try {
                     ServerSocket socket = new ServerSocket( port );
                     mf.setServerSocket(socket);
-                    SuccessFrame.showSuccess("Server socket started on port: " + port);
                     return 0; // Succès
                 } catch (IOException ex) {
                     return -1; // Échec
@@ -104,7 +103,8 @@ public class SetupPanel extends JPanel {
                 try {
                     Integer success = get();
                     if (success==0) {
-                        mf.showMainPanel();
+                        SuccessFrame.showSuccess("Server socket started on port: " + port);
+                        SwingUtilities.invokeLater(mf::showMainPanel);
                     } else if(success==-1) {
                         ErrorFrame.showError("Unable to connect using port:" +  port + "!");
                     }
