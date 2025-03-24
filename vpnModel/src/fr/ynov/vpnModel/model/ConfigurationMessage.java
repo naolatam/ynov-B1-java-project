@@ -11,6 +11,7 @@ public class ConfigurationMessage extends Message implements EncryptDecryptInter
 
     private final SocketConfiguration configuration;
 
+
     public ConfigurationMessage(String content, Origin origin, boolean crypted, MessageType event, SocketConfiguration configuration) {
         super(content, origin, crypted,event);
         this.configuration = configuration;
@@ -21,6 +22,9 @@ public class ConfigurationMessage extends Message implements EncryptDecryptInter
         return mapper.writeValueAsString(this);
     }
 
+    public SocketConfiguration getConfiguration() {
+        return configuration;
+    }
 
     public String decrypt(SecretKey privateKey) throws Exception {
         if(configuration == SocketConfiguration.SEND_PUBLIC_KEY) {

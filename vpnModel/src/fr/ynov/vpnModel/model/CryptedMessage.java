@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 
 public class CryptedMessage extends Message implements EncryptDecryptInterface {
 
+    public CryptedMessage() {}
 
     public CryptedMessage(String content, Origin origin, boolean crypted, MessageType event) {
         super(content, origin, crypted, event);
