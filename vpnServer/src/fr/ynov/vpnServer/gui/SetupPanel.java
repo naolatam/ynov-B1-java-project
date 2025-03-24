@@ -2,6 +2,7 @@ package fr.ynov.vpnServer.gui;
 
 import com.sun.jdi.VoidType;
 import fr.ynov.vpnModel.gui.ErrorFrame;
+import fr.ynov.vpnModel.gui.SuccessFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
 
 import javax.swing.*;
