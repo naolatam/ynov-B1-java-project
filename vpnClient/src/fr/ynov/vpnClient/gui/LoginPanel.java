@@ -115,12 +115,12 @@ public class LoginPanel extends JPanel {
                     Integer success = get();
                     if (success==0) {
                         JOptionPane.showMessageDialog(LoginPanel.this, "Connexion réussi !", "Erreur", JOptionPane.ERROR_MESSAGE);
-
+                        mf.showMainPanel();
                     } else if(success==-1) {
                         ErrorFrame.showError("Unable to connect to " + fqdn + ":" + port + "!");
                     }
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(LoginPanel.this, "Erreur inattendue : " + ex.getMessage(), "Erreur", JOptionPane.ERROR_MESSAGE);
+                    ErrorFrame.showError("Unexcepted error : " + ex.getMessage());
                 }
                 SwingUtilities.invokeLater(() ->  btnConnect.setText("Connect"));
                 SwingUtilities.invokeLater(() ->          btnConnect.setEnabled(true));

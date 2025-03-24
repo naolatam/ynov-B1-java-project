@@ -9,6 +9,7 @@ import java.util.List;
 
 public class MainFrame extends JFrame {
     private final LoginPanel lp = new LoginPanel(this);
+    private final LoginPanel lp2 = new LoginPanel(this);
     private final String title;
     private CardLayout cl;
     private JPanel mainPanel;
@@ -46,6 +47,10 @@ public class MainFrame extends JFrame {
     public void showLoginPanel() {
         setTitle("Login");
         mainPanel.add(lp, "Login");
+    }
+    public void showMainPanel() {
+        setTitle("Logged");
+        mainPanel.add(lp2, "Login");
     }
     public void addSocket(ClientSocket cs) {
         this.csList.add(cs);
