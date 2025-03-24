@@ -2,6 +2,7 @@ package fr.ynov.vpnClient.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
