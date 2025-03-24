@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import fr.ynov.vpnModel.model.Message;
@@ -58,8 +59,9 @@ public class CustomSocket {
         }
     }
 
-    public Message listenForMessage() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException {
+    public Message listenForMessage() throws IOException {
         try {
+
             BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
             Message msg;
             ConfigurationMessage confMessage;
