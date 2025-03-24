@@ -19,15 +19,16 @@ import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
+import java.util.function.Function;
 
-public class serverSocket extends ServerSocket implements EncryptDecryptInterface {
+public class CustomServerSocket extends ServerSocket implements EncryptDecryptInterface,EventInterface {
 
     private SecretKey privateKey;
     private SecretKey publicKey;
     private List<Socket> clients;
 
     // This is the constructor
-    public serverSocket(int port) throws Exception {
+    public CustomServerSocket(int port) throws Exception {
         super(port);
         new Thread(this::handleConnection).start();
     }
@@ -122,4 +123,43 @@ public class serverSocket extends ServerSocket implements EncryptDecryptInterfac
         }
     }
 
+    @Override
+    public void onMessage(Message message) {
+
+    }
+
+    @Override
+    public void onConnect(CustomSocket socket) {
+
+    }
+
+    @Override
+    public void onDisconnect(CustomSocket socket) {
+
+    }
+
+    @Override
+    public void onError(CustomSocket socket) {
+
+    }
+
+    @Override
+    public void setOnMessage(Function<Message, Void> onMessage) {
+
+    }
+
+    @Override
+    public void setOnConnect(Function<CustomSocket, Void> onConnect) {
+
+    }
+
+    @Override
+    public void setOnDisconnect(Function<CustomSocket, Void> onDisconnect) {
+
+    }
+
+    @Override
+    public void setOnError(Function<CustomSocket, Void> onError) {
+
+    }
 }
