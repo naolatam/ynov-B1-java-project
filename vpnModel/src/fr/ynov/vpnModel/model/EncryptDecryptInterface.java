@@ -13,7 +13,7 @@ public interface EncryptDecryptInterface {
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
             byte[] encryptedBytes = Base64.getDecoder().decode(content);
             byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
-                        return decryptedBytes.toString();
+            return new String(decryptedBytes);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -23,8 +23,7 @@ public interface EncryptDecryptInterface {
         try {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, privateKey);
-            byte[] contentBytes = content.getBytes();
-            byte[] crypted = cipher.doFinal(contentBytes);
+            byte[] crypted = cipher.doFinal(content.getBytes());
             return Base64.getEncoder().encodeToString(crypted);
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);
