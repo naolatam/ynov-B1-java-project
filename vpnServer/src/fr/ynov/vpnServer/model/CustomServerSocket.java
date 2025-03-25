@@ -86,7 +86,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
             try {
                 Message msg = socket.listenForMessage();
                 if (msg != null) {
-                    if(msg.getEvent() == MessageType.CONFIG) {
+                    if(msg.getType() == MessageType.CONFIG) {
                         ConfigurationMessage confMessage = (ConfigurationMessage) msg;
                         SecretKey clientPubKey = new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
                         socket.setPublicKey(clientPubKey);
