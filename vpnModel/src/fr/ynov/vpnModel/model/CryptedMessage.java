@@ -26,10 +26,13 @@ public class CryptedMessage extends Message implements EncryptDecryptInterface {
     }
 
     public String decrypt(SecretKey privateKey) throws Exception {
-            String newContent = this.decrypt(privateKey, this.getContent());
-            this.setContent(newContent);
-            this.crypted = false;
-            return newContent;
+            if(isCrypted()) {
+                String newContent = this.decrypt(privateKey, this.getContent());
+                this.setContent(newContent);
+                this.crypted = false;
+                return newContent;
+            }
+            return null;
     }
 
     public String encrypt(SecretKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException {

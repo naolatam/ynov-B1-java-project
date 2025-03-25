@@ -32,7 +32,7 @@ public class ConfigurationMessage extends Message implements EncryptDecryptInter
     }
 
     public String decrypt(SecretKey privateKey) throws Exception {
-        if(configuration == SocketConfiguration.SEND_PUBLIC_KEY) {
+        if(isCrypted()) {
             String newContent = this.decrypt(privateKey, this.getContent());
             this.setContent(newContent);
             this.crypted = false;
