@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 
 public class LoginPanel extends JPanel {
@@ -75,7 +76,7 @@ public class LoginPanel extends JPanel {
         styleTextField(txtKey);
         add(txtKey, gbc);
         txtKey.setEditable(false);
-        txtKey.setText(generateKey().getEncoded().toString());
+        txtKey.setText(Base64.getEncoder().encodeToString(generateKey().getEncoded()));
 
         gbc.gridx = 0;
         gbc.gridy++;
@@ -119,7 +120,7 @@ public class LoginPanel extends JPanel {
                 }
                 try {
                     ClientSocket socket = new ClientSocket(fqdn, port );
-                    socket.setPrivateKey(new SecretKeySpec(txtKey.getText().getBytes(), "AES"));
+                    socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
                     mf.addSocket(socket);
                     return 0; // Succès
                 } catch (IOException | InterruptedException ex) {
