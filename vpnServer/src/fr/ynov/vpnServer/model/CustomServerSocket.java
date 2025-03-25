@@ -29,6 +29,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     private List<Socket> clients;
 
     private BiConsumer<CustomSocket, Message> onMessage;
+    private BiConsumer<CustomSocket, ConfigurationMessage> onMessageConfiguration;
     private Function<CustomSocket, Void> onConnect;
     private Function<CustomSocket, Void> onDisconnect;
     private Function<CustomSocket, Void> onError;
@@ -173,6 +174,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 }
 
             }
+            onMessageConfiguration(socket, confMessage);
         } catch (NoSuchPaddingException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -190,6 +192,12 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     public void onMessage(CustomSocket cs, Message message) {
         if(onMessage != null) {
             this.onMessage.accept(cs, message);
+        }
+    }
+    @Override
+    public void onMessageConfiguration(CustomSocket cs, ConfigurationMessage message) {
+        if(onMessageConfiguration != null) {
+            this.onMessageConfiguration.accept(cs, message);
         }
     }
     @Override
@@ -214,6 +222,10 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     @Override
     public void setOnMessage(BiConsumer<CustomSocket, Message> onMessage) {
         this.onMessage = onMessage;
+    }
+    @Override
+    public void setOnMessageConfiguration(BiConsumer<CustomSocket, ConfigurationMessage> onMessageConfiguration) {
+        this.onMessageConfiguration = onMessageConfiguration;
     }
     @Override
     public void setOnConnect(Function<CustomSocket, Void> onConnect) {
