@@ -6,16 +6,22 @@ import fr.ynov.vpnModel.gui.SuccessFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
 import fr.ynov.vpnServer.model.CustomServerSocket;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.function.Function;
 
 
 public class SetupPanel extends JPanel {
 
+    private JTextField txtKey;
     private JSpinner spPort;
     private JButton btnStart;
     private final MainFrame mf;
@@ -59,6 +65,20 @@ public class SetupPanel extends JPanel {
         spPort.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         add(spPort, gbc);
 
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel lblKey = new JLabel("AES Key:");
+        lblKey.setForeground(StyleSet.labelTextColor);
+        add(lblKey, gbc);
+
+        gbc.gridx = 1;
+        txtKey = new JTextField(15);
+        styleTextField(txtKey);
+        add(txtKey, gbc);
+        txtKey.setEditable(false);
+        txtKey.setText(Base64.getEncoder().encodeToString(generateKey().getEncoded()));
+
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
@@ -78,6 +98,13 @@ public class SetupPanel extends JPanel {
         button.setFocusPainted(false);
     }
 
+    private void styleTextField(JTextField field) {
+        field.setFont(new Font("Arial", Font.PLAIN, 14));
+        field.setForeground(StyleSet.inputTextColor);
+        field.setBackground(StyleSet.inputBackgroundColor);
+        field.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    }
+
     private void connectToServer(ActionEvent e) {
         SwingUtilities.invokeLater(() ->  btnStart.setText("Starting..."));
         SwingUtilities.invokeLater(() ->  btnStart.setEnabled(false));
@@ -90,6 +117,7 @@ public class SetupPanel extends JPanel {
 
                 try {
                     CustomServerSocket socket = new CustomServerSocket( port );
+                    socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
                     mf.setServerSocket(socket);
                     return 0; // Succès
                 } catch (IOException ex) {
@@ -118,4 +146,20 @@ public class SetupPanel extends JPanel {
         }.execute();
 
     }
+
+    private SecretKey generateKey() {
+        try {
+            KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+
+            // Initialize the KeyGenerator with a key size (128, 192, or 256 bits)
+            keyGen.init(256);  // AES supports key sizes: 128, 192, or 256 bits
+
+            // Generate the AES secret key
+            return keyGen.generateKey();
+        } catch (NoSuchAlgorithmException ex) {
+            System.out.println(ex.getMessage());
+        }
+        return null;
+    };
+
 }

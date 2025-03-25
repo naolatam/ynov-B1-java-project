@@ -41,6 +41,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     }
 
     public void setPrivateKey(SecretKey privateKey) {
+        this.publicKey = privateKey;
         this.privateKey = privateKey;
     }
 
