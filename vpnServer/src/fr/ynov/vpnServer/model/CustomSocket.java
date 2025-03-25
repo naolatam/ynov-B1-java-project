@@ -4,13 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import fr.ynov.vpnModel.model.Message;
 import fr.ynov.vpnModel.model.CryptedMessage;
@@ -28,7 +26,7 @@ public class CustomSocket {
     private SecretKey publicKey;
     private SecretKey serverKey;
 
-    private List<Message> messages;
+    private final List<Message> messages = new ArrayList<>();
 
 
     public CustomSocket(Socket socket) throws IOException {
@@ -49,9 +47,9 @@ public class CustomSocket {
     }
     public void sendMessage(Message msg) throws IOException, AssertionError {
         try {
-            OutputStream output = this.socket.getOutputStream();
+            PrintWriter output = new PrintWriter(this.socket.getOutputStream(), true);
             assert msg != null;
-            output.write(msg.getJSON().getBytes());
+            output.println(msg.getJSON());
             this.messages.add(msg);
         } catch (IOException | AssertionError e){
             e.printStackTrace();
