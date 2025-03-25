@@ -29,14 +29,17 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     private List<Socket> clients;
 
     private BiConsumer<CustomSocket, Message> onMessage;
+    private BiConsumer<CustomSocket, ConfigurationMessage> onMessageConfiguration;
     private Function<CustomSocket, Void> onConnect;
     private Function<CustomSocket, Void> onDisconnect;
     private Function<CustomSocket, Void> onError;
 
+    private String serverName;
 
     // This is the constructor
-    public CustomServerSocket(int port) throws Exception {
+    public CustomServerSocket(int port, String name) throws Exception {
         super(port);
+        this.serverName = name;
         new Thread(this::handleConnection).start();
     }
 
@@ -44,7 +47,6 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
         this.publicKey = privateKey;
         this.privateKey = privateKey;
     }
-
     // This method is used to reply to the 'GET_PUBLIC_KEY' from clientSocket
     public void sendServerKey(CustomSocket socket) throws IOException, NoSuchPaddingException, NoSuchAlgorithmException {
         String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
@@ -53,6 +55,16 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 pubKey, Origin.SERVER, true, MessageType.CONFIG,
                 SocketConfiguration.SEND_PUBLIC_KEY);
         socket.sendMessage(confMessage);
+    }
+
+    public void sendName(CustomSocket socket) throws IOException {
+        try {
+            String content = this.encrypt(socket.getPublicKey(), serverName);
+            ConfigurationMessage confMessage = new ConfigurationMessage(
+                    content, Origin.SERVER, true, MessageType.CONFIG,
+                    SocketConfiguration.SET_NAME);
+            socket.sendMessage(confMessage);
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {}
     }
 
     private void handleConnection() {
@@ -88,9 +100,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 if (msg != null) {
                     if(msg.getType() == MessageType.CONFIG) {
                         ConfigurationMessage confMessage = (ConfigurationMessage) msg;
-                        SecretKey clientPubKey = new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
-                        socket.setPublicKey(clientPubKey);
-                        this.sendServerKey(socket);
+                        parseConfigFromMessage(socket, confMessage);
                         continue;
                     }
                     if(msg.isCrypted()) {
@@ -111,6 +121,8 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
         }
     }
 
+
+
     public void sendMessage(String content, Boolean crypted, CustomSocket socket)
             throws IOException, AssertionError, NoSuchAlgorithmException {
         Message msg = null;
@@ -129,61 +141,100 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
         assert msg != null;
         sendMessage(msg, socket);
     }
+
     public void sendMessage(Message msg, CustomSocket socket) throws IOException, AssertionError {
         try {
-            OutputStream output = socket.getSocket().getOutputStream();
-            assert msg != null;
-            output.write(msg.getJSON().getBytes());
+            socket.sendMessage(msg);
         } catch (IOException | AssertionError e){
             e.printStackTrace();
             System.out.println("IO Exception: "+ e.toString());
         }
     }
 
+    private void parseConfigFromMessage(CustomSocket socket, ConfigurationMessage confMessage) {
+        try {
+            if(confMessage.getOrigin() != Origin.CLIENT) {return;}
+            if(confMessage.isCrypted()) {
+               confMessage.decrypt(this.privateKey);
+            }
+            switch (confMessage.getConfiguration()) {
+                case GET_PUBLIC_KEY ->{
+                    SecretKey clientPubKey = new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
+                    socket.setPublicKey(clientPubKey);
+                    this.sendServerKey(socket);
+                    break;
+                }
+                case SET_NAME -> {
+                    socket.setName(confMessage.getContent());
+                    sendName(socket);
+                    break;
+                }
+                default -> {
+                    break;
+                }
+
+            }
+            onMessageConfiguration(socket, confMessage);
+        } catch (NoSuchPaddingException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    // Event listener
     @Override
     public void onMessage(CustomSocket cs, Message message) {
         if(onMessage != null) {
             this.onMessage.accept(cs, message);
         }
     }
-
+    @Override
+    public void onMessageConfiguration(CustomSocket cs, ConfigurationMessage message) {
+        if(onMessageConfiguration != null) {
+            this.onMessageConfiguration.accept(cs, message);
+        }
+    }
     @Override
     public void onConnect(CustomSocket socket) {
         if(onConnect != null) {
             this.onConnect.apply(socket);
         }
     }
-
     @Override
     public void onDisconnect(CustomSocket socket) {
         if(onDisconnect != null) {
             this.onDisconnect.apply(socket);
         }
     }
-
     @Override
     public void onError(CustomSocket socket) {
         if(onError != null) {
             this.onError.apply(socket);
         }
     }
-
+    // Setter for event listener.
     @Override
     public void setOnMessage(BiConsumer<CustomSocket, Message> onMessage) {
         this.onMessage = onMessage;
     }
-
+    @Override
+    public void setOnMessageConfiguration(BiConsumer<CustomSocket, ConfigurationMessage> onMessageConfiguration) {
+        this.onMessageConfiguration = onMessageConfiguration;
+    }
     @Override
     public void setOnConnect(Function<CustomSocket, Void> onConnect) {
         this.onConnect = onConnect;
-
     }
-
     @Override
     public void setOnDisconnect(Function<CustomSocket, Void> onDisconnect) {
         this.onDisconnect = onDisconnect;
     }
-
     @Override
     public void setOnError(Function<CustomSocket, Void> onError) {
         this.onError = onError;

@@ -10,6 +10,8 @@ import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
 import fr.ynov.vpnModel.model.Message;
 import fr.ynov.vpnModel.model.CryptedMessage;
 import fr.ynov.vpnModel.model.ConfigurationMessage;
@@ -28,9 +30,12 @@ public class CustomSocket {
 
     private final List<Message> messages = new ArrayList<>();
 
+    private String name;
+    private UUID uuid;
 
     public CustomSocket(Socket socket) throws IOException {
         this.socket = socket;
+        this.uuid = UUID.randomUUID();
     }
 
     public void setPublicKey(SecretKey publicKey) {
@@ -39,6 +44,18 @@ public class CustomSocket {
 
     public SecretKey getPublicKey() {
         return this.publicKey;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public UUID getUuid() {
+        return this.uuid;
     }
 
     public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException {

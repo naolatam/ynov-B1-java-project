@@ -1,5 +1,6 @@
 package fr.ynov.vpnServer.gui;
 
+import fr.ynov.vpnModel.model.ConfigurationMessage;
 import fr.ynov.vpnModel.model.Message;
 import fr.ynov.vpnServer.model.CustomServerSocket;
 import fr.ynov.vpnServer.model.CustomSocket;
@@ -72,12 +73,16 @@ public class MainFrame  extends JFrame {
 
     private void setListener() {
         this.ss.setOnConnect((CustomSocket cs) -> {
-            System.out.println(cs);
+            if(cs.getName() == "" || cs.getName() == null) {
+                mp.addConversation(cs.getUuid().toString());
+                return null;
+            }
+            mp.addConversation(cs.getName() + " (" + cs.getUuid().toString() + ")");
             return null;
         });
-        this.ss.setOnMessage((CustomSocket cs, Message message) -> {
-            System.out.println(message.getContent());
-            System.out.println("From: " + cs.toString() + ", Message: " + message.getContent());
+
+        this.ss.setOnMessageConfiguration((CustomSocket cs, ConfigurationMessage confMessage) -> {
+            System.out.println("From: " + cs.toString() + ", Message: " + confMessage.getContent());
             return;
         });
     }
