@@ -63,8 +63,12 @@ public class CustomSocket extends Socket {
             ConfigurationMessage confMessage;
             String line;
             ObjectMapper mapper = new ObjectMapper();
+<<<<<<< Updated upstream
             while (this.isConnected() && (line = in.readLine()) != null) {
                 System.out.println("New line: " + line);
+=======
+            while (this.socket.isConnected() && (line = in.readLine()) != null) {
+>>>>>>> Stashed changes
                 msg = mapper.readValue(line, Message.class);
                 return msg;
             }

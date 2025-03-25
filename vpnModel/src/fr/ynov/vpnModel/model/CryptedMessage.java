@@ -1,13 +1,18 @@
 package fr.ynov.vpnModel.model;
 
 
+<<<<<<< Updated upstream
+=======
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+>>>>>>> Stashed changes
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.crypto.*;
 import java.security.NoSuchAlgorithmException;
 
-
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class CryptedMessage extends Message implements EncryptDecryptInterface {
 
     public CryptedMessage() {}
