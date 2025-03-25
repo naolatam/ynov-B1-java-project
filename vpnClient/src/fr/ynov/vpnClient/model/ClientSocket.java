@@ -10,6 +10,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class ClientSocket extends Socket {
     private SecretKey privateKey;
     private SecretKey publicKey;
     private SecretKey serverKey;
-    private List<Message> messages;
+    private List<Message> messages = new ArrayList<>();
 
 
     public ClientSocket(String host, int port) throws Exception {
