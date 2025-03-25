@@ -154,8 +154,8 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     private void parseConfigFromMessage(CustomSocket socket, ConfigurationMessage confMessage) {
         try {
             if(confMessage.getOrigin() != Origin.CLIENT) {return;}
-            if(confMessage.getConfiguration() != SocketConfiguration.GET_PUBLIC_KEY) {
-                confMessage.decrypt(this.privateKey);
+            if(confMessage.isCrypted()) {
+               confMessage.decrypt(this.privateKey);
             }
             switch (confMessage.getConfiguration()) {
                 case GET_PUBLIC_KEY ->{
