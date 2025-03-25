@@ -17,7 +17,7 @@ import java.util.Base64;
 
 public class LoginPanel extends JPanel {
 
-    private JTextField txtHost, txtKey;
+    private JTextField txtHost, txtKey, txtName;
     private JSpinner spPort;
     private JButton btnConnect;
     private final MainFrame mf;
@@ -78,6 +78,18 @@ public class LoginPanel extends JPanel {
         txtKey.setEditable(false);
         txtKey.setText(Base64.getEncoder().encodeToString(generateKey().getEncoded()));
 
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel lblName = new JLabel("Username:");
+        lblName.setForeground(StyleSet.labelTextColor);
+        add(lblName, gbc);
+
+        gbc.gridx = 1;
+        txtName = new JTextField(15);
+        styleTextField(txtName);
+        add(txtName, gbc);
+
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
@@ -119,7 +131,7 @@ public class LoginPanel extends JPanel {
                     return -2;
                 }
                 try {
-                    ClientSocket socket = new ClientSocket(fqdn, port );
+                    ClientSocket socket = new ClientSocket(fqdn, port, txtName.getText() );
                     socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
                     mf.addSocket(socket);
                     return 0; // Succès

@@ -54,7 +54,6 @@ public class MainFrame extends JFrame {
         mainPanel.add(lp2, "Login");
     }
     public void addSocket(ClientSocket cs) {
-        cs.askServerKey();
         this.csList.add(cs);
     }
 

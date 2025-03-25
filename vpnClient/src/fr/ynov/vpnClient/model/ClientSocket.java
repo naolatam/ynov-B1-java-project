@@ -30,9 +30,12 @@ public class ClientSocket extends Socket {
     private SecretKey serverKey;
     private List<Message> messages = new ArrayList<>();
 
+    private String name;
 
-    public ClientSocket(String host, int port) throws Exception {
+    public ClientSocket(String host, int port, String name) throws Exception {
         connect(new InetSocketAddress(host, port), 5000);
+        this.name = name;
+        askServerKey();
         new Thread(this::listenMessage).start();
     }
 
@@ -45,6 +48,17 @@ public class ClientSocket extends Socket {
         try {
             String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
             ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
+            sendMessage(confMessage);
+        } catch (IOException ex) {
+            try {this.close();} catch (IOException ex1) {}
+            System.out.println(ex.getMessage());
+
+        }
+    }
+    public void sendName() {
+        try {
+            ConfigurationMessage confMessage = new ConfigurationMessage(name, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.SET_CLIENT_SOCKET_NAME);
+            confMessage.encrypt(this.serverKey);
             sendMessage(confMessage);
         } catch (IOException ex) {
             try {this.close();} catch (IOException ex1) {}
@@ -73,6 +87,8 @@ public class ClientSocket extends Socket {
                     }
                     this.serverKey= new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
                     this.messages.add(confMessage);
+                    sendName();
+                    continue;
                 }
                 if(msg.isCrypted()){
                     if(this.privateKey == null) {
