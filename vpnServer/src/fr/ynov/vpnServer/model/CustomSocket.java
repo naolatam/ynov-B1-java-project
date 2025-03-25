@@ -28,6 +28,7 @@ public class CustomSocket {
 
     private final List<Message> messages = new ArrayList<>();
 
+    private String name;
 
     public CustomSocket(Socket socket) throws IOException {
         this.socket = socket;
@@ -39,6 +40,14 @@ public class CustomSocket {
 
     public SecretKey getPublicKey() {
         return this.publicKey;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return this.name;
     }
 
     public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException {
