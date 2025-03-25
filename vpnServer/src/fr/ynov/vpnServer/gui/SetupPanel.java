@@ -21,7 +21,7 @@ import java.util.function.Function;
 
 public class SetupPanel extends JPanel {
 
-    private JTextField txtKey;
+    private JTextField txtKey, txtName;
     private JSpinner spPort;
     private JButton btnStart;
     private final MainFrame mf;
@@ -79,6 +79,18 @@ public class SetupPanel extends JPanel {
         txtKey.setEditable(false);
         txtKey.setText(Base64.getEncoder().encodeToString(generateKey().getEncoded()));
 
+        gbc.gridwidth = 1;
+        gbc.gridx = 0;
+        gbc.gridy++;
+        JLabel lblName = new JLabel("Server name:");
+        lblName.setForeground(StyleSet.labelTextColor);
+        add(lblName, gbc);
+
+        gbc.gridx = 1;
+        txtName = new JTextField(15);
+        styleTextField(txtName);
+        add(txtName, gbc);
+
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
@@ -116,7 +128,7 @@ public class SetupPanel extends JPanel {
             protected Integer doInBackground() {
 
                 try {
-                    CustomServerSocket socket = new CustomServerSocket( port );
+                    CustomServerSocket socket = new CustomServerSocket( port, txtName.getText() );
                     socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
                     mf.setServerSocket(socket);
                     return 0; // Succès

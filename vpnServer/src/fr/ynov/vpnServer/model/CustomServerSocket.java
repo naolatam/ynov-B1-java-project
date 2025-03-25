@@ -33,10 +33,12 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     private Function<CustomSocket, Void> onDisconnect;
     private Function<CustomSocket, Void> onError;
 
+    private String serverName;
 
     // This is the constructor
-    public CustomServerSocket(int port) throws Exception {
+    public CustomServerSocket(int port, String name) throws Exception {
         super(port);
+        this.serverName = name;
         new Thread(this::handleConnection).start();
     }
 
@@ -52,6 +54,16 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 pubKey, Origin.SERVER, true, MessageType.CONFIG,
                 SocketConfiguration.SEND_PUBLIC_KEY);
         socket.sendMessage(confMessage);
+    }
+
+    public void sendName(CustomSocket socket) throws IOException {
+        try {
+            String content = this.encrypt(socket.getPublicKey(), serverName);
+            ConfigurationMessage confMessage = new ConfigurationMessage(
+                    content, Origin.SERVER, true, MessageType.CONFIG,
+                    SocketConfiguration.SET_NAME);
+            socket.sendMessage(confMessage);
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {}
     }
 
     private void handleConnection() {
@@ -108,6 +120,8 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
         }
     }
 
+
+
     public void sendMessage(String content, Boolean crypted, CustomSocket socket)
             throws IOException, AssertionError, NoSuchAlgorithmException {
         Message msg = null;
@@ -129,9 +143,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
 
     public void sendMessage(Message msg, CustomSocket socket) throws IOException, AssertionError {
         try {
-            OutputStream output = socket.getSocket().getOutputStream();
-            assert msg != null;
-            output.write(msg.getJSON().getBytes());
+            socket.sendMessage(msg);
         } catch (IOException | AssertionError e){
             e.printStackTrace();
             System.out.println("IO Exception: "+ e.toString());
@@ -153,6 +165,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 }
                 case SET_NAME -> {
                     socket.setName(confMessage.getContent());
+                    sendName(socket);
                     break;
                 }
                 default -> {
