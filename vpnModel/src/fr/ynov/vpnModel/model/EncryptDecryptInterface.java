@@ -25,7 +25,7 @@ public interface EncryptDecryptInterface {
             cipher.init(Cipher.ENCRYPT_MODE, privateKey);
             byte[] contentBytes = content.getBytes();
             byte[] crypted = cipher.doFinal(contentBytes);
-            return crypted.toString();
+            return Base64.getEncoder().encodeToString(crypted);
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             throw new RuntimeException(e);
         }
