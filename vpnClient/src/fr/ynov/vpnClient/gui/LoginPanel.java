@@ -133,6 +133,7 @@ public class LoginPanel extends JPanel {
                 try {
                     ClientSocket socket = new ClientSocket(fqdn, port, txtName.getText() );
                     socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
+                    socket.askServerKey();
                     mf.addSocket(socket);
                     return 0; // Succès
                 } catch (IOException | InterruptedException ex) {

@@ -31,11 +31,12 @@ public class ClientSocket extends Socket {
     private List<Message> messages = new ArrayList<>();
 
     private String name;
+    private String ServerName;
+
 
     public ClientSocket(String host, int port, String name) throws Exception {
         connect(new InetSocketAddress(host, port), 5000);
         this.name = name;
-        askServerKey();
         new Thread(this::listenMessage).start();
     }
 
@@ -57,13 +58,17 @@ public class ClientSocket extends Socket {
     }
     public void sendName() {
         try {
-            ConfigurationMessage confMessage = new ConfigurationMessage(name, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.SET_CLIENT_SOCKET_NAME);
+            ConfigurationMessage confMessage = new ConfigurationMessage(name, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.SET_NAME);
             confMessage.encrypt(this.serverKey);
             sendMessage(confMessage);
         } catch (IOException ex) {
             try {this.close();} catch (IOException ex1) {}
             System.out.println(ex.getMessage());
 
+        } catch (NoSuchPaddingException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -71,23 +76,15 @@ public class ClientSocket extends Socket {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(this.getInputStream()));
             Message msg;
-            ConfigurationMessage confMessage;
             String line;
             ObjectMapper mapper = new ObjectMapper();
+
             while (this.isConnected() && (line = in.readLine()) != null) {
                 System.out.println("New line: " +line);
                 msg = mapper.readValue(line, Message.class);
 
                 if(msg.getType() == MessageType.CONFIG) {
-                    confMessage = mapper.readValue(line, ConfigurationMessage.class);
-                    confMessage.decrypt(this.privateKey);
-                    if(confMessage.getContent() == null) {
-                        askServerKey();
-                        continue;
-                    }
-                    this.serverKey= new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
-                    this.messages.add(confMessage);
-                    sendName();
+                    parseConfigFromMessage((ConfigurationMessage) msg);
                     continue;
                 }
                 if(msg.isCrypted()){
@@ -95,18 +92,15 @@ public class ClientSocket extends Socket {
                         this.messages.add(msg);
                         continue;
                     }
+
                     CryptedMessage cMsg = (CryptedMessage) msg;
                     cMsg.decrypt(this.privateKey);
+
                     if(cMsg.getContent() == null) {
                         this.askServerKey();
-                        this.messages.add(msg);
-                        continue;
                     }
-                    this.messages.add(cMsg);
-                    continue;
                 }
                 this.messages.add(msg);
-                continue;
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -146,4 +140,24 @@ public class ClientSocket extends Socket {
         }
     }
 
+    private void parseConfigFromMessage(ConfigurationMessage confMessage) {
+        try {
+            confMessage.decrypt(this.privateKey);
+            if(confMessage.getContent() == null) {
+                askServerKey();
+                return;
+            }
+            if(confMessage.getConfiguration() == SocketConfiguration.SEND_PUBLIC_KEY) {
+                this.serverKey= new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
+                this.messages.add(confMessage);
+                sendName();
+            }
+            if(confMessage.getConfiguration() == SocketConfiguration.SET_NAME) {
+                this.name = confMessage.getContent();
+            }
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
