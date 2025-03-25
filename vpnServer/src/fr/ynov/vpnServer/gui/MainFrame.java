@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Objects;
 
 public class MainFrame  extends JFrame {
     private CustomServerSocket ss = null;
@@ -73,17 +74,13 @@ public class MainFrame  extends JFrame {
 
     private void setListener() {
         this.ss.setOnConnect((CustomSocket cs) -> {
-            if(cs.getName() == "" || cs.getName() == null) {
-                mp.addConversation(cs.getUuid().toString());
-                return null;
-            }
-            mp.addConversation(cs.getName() + " (" + cs.getUuid().toString() + ")");
+            mp.addClient(cs);
             return null;
         });
 
         this.ss.setOnMessageConfiguration((CustomSocket cs, ConfigurationMessage confMessage) -> {
             System.out.println("From: " + cs.toString() + ", Message: " + confMessage.getContent());
-            return;
+            mp.updateClient(cs);
         });
     }
 

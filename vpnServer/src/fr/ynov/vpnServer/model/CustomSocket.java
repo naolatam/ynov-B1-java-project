@@ -51,7 +51,10 @@ public class CustomSocket {
     }
 
     public String getName() {
-        return this.name;
+        if(name == "" || name == null) {
+            return getUuid().toString();
+        }
+        return this.name + " (" + getUuid().toString() + ")";
     }
 
     public UUID getUuid() {
@@ -103,5 +106,10 @@ public class CustomSocket {
     }
     public void addMessage(Message msg) {
         this.messages.add(msg);
+    }
+
+    @Override
+    public String toString() {
+        return getName();
     }
 }
