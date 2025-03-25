@@ -58,7 +58,7 @@ public class ClientSocket extends Socket {
                 System.out.println("New line: " +line);
                 msg = mapper.readValue(line, Message.class);
 
-                if(msg.getEvent() == MessageType.CONFIG) {
+                if(msg.getType() == MessageType.CONFIG) {
                     confMessage = mapper.readValue(line, ConfigurationMessage.class);
                     confMessage.decrypt(this.privateKey);
                     if(confMessage.getContent() == null) {

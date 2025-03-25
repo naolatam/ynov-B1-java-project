@@ -3,14 +3,11 @@ package fr.ynov.vpnModel.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.DataInput;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 public class Message {
-        private MessageType event;
+        private MessageType type;
         private String content;
         private Origin origin;
         protected boolean crypted;
@@ -19,11 +16,11 @@ public class Message {
     }
 
 
-    public Message(String content, Origin origin, boolean crypted, MessageType event) {
+    public Message(String content, Origin origin, boolean crypted, MessageType type) {
             this.content = content;
             this.origin = origin;
             this.crypted = crypted;
-            this.event = event;
+            this.type = type;
         }
         public String getContent() {
             return this.content;
@@ -41,8 +38,8 @@ public class Message {
             return mapper.writeValueAsString(this);
         }
 
-    public MessageType getEvent() {
-            return this.event;
+    public MessageType getType() {
+            return this.type;
         }
         public Boolean isCrypted() {
             return this.crypted;
