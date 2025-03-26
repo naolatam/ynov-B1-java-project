@@ -1,19 +1,18 @@
 package fr.ynov.vpnServer.model;
 
-import fr.ynov.vpnModel.model.Message;
-import fr.ynov.vpnModel.model.CryptedMessage;
-import fr.ynov.vpnModel.model.ConfigurationMessage;
-import fr.ynov.vpnModel.model.MessageType;
-import fr.ynov.vpnModel.model.SocketConfiguration;
-import fr.ynov.vpnModel.model.Origin;
 import fr.ynov.vpnModel.model.EncryptDecryptInterface;
+import fr.ynov.vpnModel.model.Message;
+import fr.ynov.vpnModel.model.ConfigurationMessage;
+import fr.ynov.vpnModel.model.CryptedMessage;
+import fr.ynov.vpnModel.model.MessageType;
+import fr.ynov.vpnModel.model.Origin;
+import fr.ynov.vpnModel.model.SocketConfiguration;
 
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
@@ -23,7 +22,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class CustomServerSocket extends ServerSocket implements EncryptDecryptInterface,EventInterface {
+
+public class CustomServerSocket extends ServerSocket implements EncryptDecryptInterface, EventInterface {
 
     private SecretKey privateKey;
     private SecretKey publicKey;
