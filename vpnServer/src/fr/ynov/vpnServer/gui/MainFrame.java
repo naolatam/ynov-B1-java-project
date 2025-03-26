@@ -74,7 +74,7 @@ public class MainFrame  extends JFrame {
     private void setListener() {
         this.ss.setOnConnect((CustomSocket cs) -> {
             if(cs.getName() == "" || cs.getName() == null) {
-                mp.addConversation(cs.getUuid().toString());
+                mp.addConversation(cs.  getUuid().toString());
                 return null;
             }
             mp.addConversation(cs.getName() + " (" + cs.getUuid().toString() + ")");
