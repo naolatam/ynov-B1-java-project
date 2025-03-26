@@ -52,10 +52,16 @@ public class CustomSocket {
     }
 
     public String getName() {
+        String res = "";
         if(name == "" || name == null) {
-            return getUuid().toString();
+            res += getUuid().toString();
+        }else {
+            res += name + "(" + getUuid().toString().split("-")[0]+ ")";
         }
-        return this.name + " (" + getUuid().toString() + ")";
+        if(socket.isClosed()) {
+            res += " (closed)";
+        }
+        return res;
     }
 
     public UUID getUuid() {

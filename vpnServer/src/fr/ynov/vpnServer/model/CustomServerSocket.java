@@ -132,6 +132,11 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
             if(confMessage.isCrypted()) {
                confMessage.decrypt(this.privateKey);
             }
+            if(confMessage.getContent() == null) {
+                sendServerKey(socket);
+                return;
+            }
+            socket.addMessage(confMessage);
             switch (confMessage.getConfiguration()) {
                 case GET_PUBLIC_KEY ->{
                     SecretKey clientPubKey = new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
@@ -149,7 +154,6 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 }
 
             }
-            socket.addMessage(confMessage);
             onMessageConfiguration(socket, confMessage);
         } catch (NoSuchPaddingException e) {
             throw new RuntimeException(e);
