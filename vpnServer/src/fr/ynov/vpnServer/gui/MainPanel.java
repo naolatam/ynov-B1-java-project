@@ -22,8 +22,7 @@ public class MainPanel extends JPanel {
     private final JPanel chatArea;
     private final JTextField messageField;
     private final JLabel socketName;
-    private final JButton sendButton;
-    private final JButton closeButton;
+    private final JButton sendButton, closeButton, deleteButton;
 
 
     public MainPanel() {
@@ -65,11 +64,17 @@ public class MainPanel extends JPanel {
         JPanel infoPanel = new JPanel(new BorderLayout());
         socketName = new JLabel("No discuss");
         closeButton = new JButton("Close");
+        deleteButton = new JButton("Delete");
+
         infoPanel.setBackground(StyleSet.backgroundColor);
         socketName.setForeground(StyleSet.titleTextColor);
         closeButton.setEnabled(false);
+        deleteButton.setEnabled(false);
         StyleSet.styleButton(closeButton);
+        StyleSet.styleButton(deleteButton);
+        deleteButton.setBackground(StyleSet.deleteButtonBackground);
         closeButton.addActionListener(this::closeSocket);
+        deleteButton.addActionListener(this::deleteSocket);
 
         infoPanel.add(socketName, BorderLayout.CENTER);
         infoPanel.add(closeButton, BorderLayout.EAST);
@@ -94,7 +99,9 @@ public class MainPanel extends JPanel {
             socketName.setText("Discuss: " + selectedClient.getName());
             closeButton.setEnabled(true);
             sendButton.setEnabled(true);
+            deleteButton.setEnabled(false);
             if (selectedClient.getSocket().isClosed()) {
+                deleteButton.setEnabled(true);
                 sendButton.setEnabled(false);
                 closeButton.setEnabled(false);
             }
@@ -122,6 +129,11 @@ public class MainPanel extends JPanel {
                 chatArea.revalidate();
                 chatArea.repaint();
             });
+
+        }else {
+            deleteButton.setEnabled(false);
+            sendButton.setEnabled(false);
+            closeButton.setEnabled(false);
 
         }
     }
@@ -170,6 +182,14 @@ public class MainPanel extends JPanel {
         } catch (NoSuchAlgorithmException ex) {
             // Cannot append because
         }
+    }
+    private void deleteSocket() {
+        CustomSocket selectedClient = clientList.getSelectedValue();
+        if (selectedClient == null) {
+            ErrorFrame.showError("Unable to delete this. This socket is undefined.");
+            return;
+        }
+        clientListModel.removeElement(selectedClient);
     }
 
     public void addClient(CustomSocket socket) {

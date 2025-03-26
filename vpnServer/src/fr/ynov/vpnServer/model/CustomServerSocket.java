@@ -188,6 +188,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     }
     @Override
     public void onDisconnect(CustomSocket socket) {
+        this.clients.remove(socket);
         if(onDisconnect != null) {
             this.onDisconnect.apply(socket);
         }

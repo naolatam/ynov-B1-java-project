@@ -72,6 +72,7 @@ public class MainFrame  extends JFrame {
         setListener();
     }
 
+
     private void setListener() {
         this.ss.setOnConnect((CustomSocket cs) -> {
             mp.addClient(cs);
