@@ -61,12 +61,14 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
 
     public void sendName(CustomSocket socket) throws IOException {
         try {
-            String content = this.encrypt(socket.getPublicKey(), serverName);
             ConfigurationMessage confMessage = new ConfigurationMessage(
-                    content, Origin.SERVER, true, MessageType.CONFIG,
+                    serverName, Origin.SERVER, true, MessageType.CONFIG,
                     SocketConfiguration.SET_NAME);
-            socket.sendMessage(confMessage);
             socket.addMessage(confMessage);
+            confMessage.encrypt(socket.getPublicKey());
+            socket.sendMessage(confMessage);
+
+
         } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {}
     }
 
