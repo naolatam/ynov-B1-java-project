@@ -96,6 +96,10 @@ public class ClientSocket extends Socket implements EventInterface {
         return this.messages;
     }
 
+    public void addMessage(Message message) {
+        this.messages.add(message);
+    }
+
     private void listenMessage() {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(this.getInputStream()));

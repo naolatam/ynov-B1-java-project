@@ -4,10 +4,7 @@ import fr.ynov.vpnClient.model.ClientSocket;
 import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
 import fr.ynov.vpnModel.gui.Utils;
-import fr.ynov.vpnModel.model.ConfigurationMessage;
-import fr.ynov.vpnModel.model.Message;
-import fr.ynov.vpnModel.model.MessageType;
-import fr.ynov.vpnModel.model.Origin;
+import fr.ynov.vpnModel.model.*;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
@@ -114,10 +111,7 @@ public class MainPanel extends JPanel {
         this.mainFrame.showLoginPanel();
     }
 
-    private void loadConversation() {
-        chatArea.removeAll();
-        chatArea.revalidate();
-        chatArea.repaint();
+    private void updateLiveComponent() {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
             socketName.setText("Discuss: " + selectedClient);
@@ -129,6 +123,19 @@ public class MainPanel extends JPanel {
                 sendButton.setEnabled(false);
                 closeButton.setEnabled(false);
             }
+        }else {
+            socketName.setText("No discuss");
+            deleteButton.setEnabled(false);
+            sendButton.setEnabled(false);
+            closeButton.setEnabled(false);
+        }
+    }
+
+    private void loadConversation() {
+        chatArea.removeAll();
+        ClientSocket selectedClient = clientList.getSelectedValue();
+        updateLiveComponent();
+        if (selectedClient != null) {
 
             selectedClient.getMessages().forEach(message -> {
                 if (message.getType() == MessageType.CONFIG) {
@@ -154,11 +161,6 @@ public class MainPanel extends JPanel {
                 chatArea.repaint();
             });
 
-        }else {
-            socketName.setText("No discuss");
-            closeButton.setEnabled(false);
-            sendButton.setEnabled(false);
-            deleteButton.setEnabled(false);
         }
     }
 
@@ -198,15 +200,16 @@ public class MainPanel extends JPanel {
             return;
         }
         try {
-            selectedClient.sendMessage("CLIENT close connection", false);
+            ConfigurationMessage cMsg = new ConfigurationMessage("CLIENT close the connection", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
+            selectedClient.addMessage(cMsg);
+            chatArea.add(Utils.createMessageLabel(cMsg.getContent(), true));
+            selectedClient.sendMessage(cMsg);
+
             mainFrame.closeSocket(selectedClient);
-            loadConversation();
+            updateClient(selectedClient);
+            updateLiveComponent();
         } catch (IOException ex) {
             ErrorFrame.showError("Unable to close connection. Error: " + ex.getMessage());
-        } catch (NoSuchAlgorithmException ex) {
-            // Cannot append because
-        } catch (NoSuchPaddingException ex) {
-            throw new RuntimeException(ex);
         }
     }
 
@@ -234,6 +237,15 @@ public class MainPanel extends JPanel {
 
     public void receiveMessage(ClientSocket client, Message message) {
         if (message.isCrypted()) message.setContent("Unable to decrypt this message");
+        if(message.getType() == MessageType.CLOSE) {
+            try {
+                client.close();
+            } catch (IOException e) {
+                try{Thread.sleep(200);} catch (InterruptedException ex) {}
+            }
+            updateClient(client);
+            updateLiveComponent();
+        }
         if (clientList.getSelectedValue() == client) {
             chatArea.add(Utils.createMessageLabel(message.getContent(), false));
             chatArea.revalidate();
