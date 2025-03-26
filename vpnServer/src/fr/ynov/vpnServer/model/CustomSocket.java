@@ -61,8 +61,13 @@ public class CustomSocket {
         return this.uuid;
     }
 
-    public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException {
+    public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException, NoSuchPaddingException {
         Message msg = new Message(content, Origin.SERVER, crypted, MessageType.MESSAGE);
+        if(crypted) {
+            CryptedMessage cMsg = new CryptedMessage(content, Origin.SERVER, true, MessageType.MESSAGE);
+            cMsg.encrypt(this.publicKey);
+            msg = cMsg;
+        }
         sendMessage(msg);
     }
     public void sendMessage(Message msg) throws IOException, AssertionError {

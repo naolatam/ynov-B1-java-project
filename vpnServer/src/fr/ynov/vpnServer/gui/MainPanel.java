@@ -11,6 +11,7 @@ import fr.ynov.vpnModel.model.SocketConfiguration;
 import fr.ynov.vpnServer.model.CustomSocket;
 
 
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -111,7 +112,7 @@ public class MainPanel extends JPanel {
 
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "Impossible d'envoyer le message", "Erreur", JOptionPane.ERROR_MESSAGE);
-                } catch (NoSuchAlgorithmException ex) {
+                } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {
                     throw new RuntimeException(ex);
                 }
 
