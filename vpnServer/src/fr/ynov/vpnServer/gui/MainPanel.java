@@ -225,12 +225,13 @@ public class MainPanel extends JPanel {
         if (message.getType() == MessageType.CLOSE && !client.getSocket().isClosed()) {
             try {
                 client.getSocket().close();
-            } catch (IOException ignored) {
+            } catch (IOException e) {
+                if(!client.getSocket().isClosed()) {
+                    System.err.println("Failed to close socket: " + e.getMessage());
+                }
             }
         }
-
         updateUIState();
-
         if (clientList.getSelectedValue() == client) {
             addMessageAndUpdateUI(message.getContent(), false);
         }

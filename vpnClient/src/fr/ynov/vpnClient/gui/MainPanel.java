@@ -121,7 +121,7 @@ public class MainPanel extends JPanel {
                 sendButton.setEnabled(false);
                 closeButton.setEnabled(false);
             }
-        }else {
+        } else {
             socketName.setText("No discuss");
             deleteButton.setEnabled(false);
             sendButton.setEnabled(false);
@@ -131,34 +131,31 @@ public class MainPanel extends JPanel {
 
     private void loadConversation() {
         chatArea.removeAll();
-        ClientSocket selectedClient = clientList.getSelectedValue();
         updateUIState();
+
+        ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
+            selectedClient.getMessages().forEach(this::updateChatUI);
+        }
+        updateChatArea();
 
-            selectedClient.getMessages().forEach(message -> {
-                if (message.getType() == MessageType.CONFIG) {
-                    switch (((ConfigurationMessage) message).getConfiguration()) {
-                        case SET_NAME -> chatArea.add(
-                                Utils.createConfigMessageLabel(
-                                        message.getOrigin().name()
-                                                + " send his name: "
-                                                + message.getContent()
-                                ));
-                        case GET_PUBLIC_KEY, SEND_PUBLIC_KEY -> chatArea.add(
-                                Utils.createConfigMessageLabel(
-                                        message.getOrigin().name()
-                                                + " send his key"
-                                )
-                        );
-                    }
-                    return;
-                }
-                boolean isSent = message.getOrigin() == Origin.CLIENT;
-                chatArea.add(Utils.createMessageLabel(message.getContent(), isSent));
-                chatArea.revalidate();
-                chatArea.repaint();
-            });
+    }
 
+    private void updateChatUI(Message message) {
+        if (message.getType() == MessageType.CONFIG) {
+            handleConfigMessage(message);
+        } else {
+            addMessageAndUpdateUI(message.getContent(), message.getOrigin() == Origin.CLIENT);
+        }
+    }
+
+    private void handleConfigMessage(Message message) {
+        ConfigurationMessage configMsg = (ConfigurationMessage) message;
+        switch (configMsg.getConfiguration()) {
+            case SET_NAME ->
+                    chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " set name: " + message.getContent()));
+            case GET_PUBLIC_KEY, SEND_PUBLIC_KEY ->
+                    chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " sent a key"));
         }
     }
 
@@ -173,9 +170,10 @@ public class MainPanel extends JPanel {
 
             selectedClient.sendMessage(message, true);
 
-            chatArea.add(Utils.createMessageLabel(message, true));
-            chatArea.revalidate();
-            chatArea.repaint();
+            updateUIState();
+
+            addMessageAndUpdateUI(message, true);
+
 
             messageField.setText("");
             messageField.grabFocus();
@@ -223,25 +221,33 @@ public class MainPanel extends JPanel {
 
     public void receiveMessage(ClientSocket client, Message message) {
         if (message.isCrypted()) message.setContent("Unable to decrypt this message");
-        if(message.getType() == MessageType.CLOSE) {
-            if(client.isClosed()) {
-                try {
-                    client.close();
-                } catch (IOException e) {
-                    Utils.sleep(200);
+
+        if (message.getType() == MessageType.CLOSE && !client.isClosed()) {
+            try {
+                client.close();
+            } catch (IOException e) {
+                if(!client.isClosed()) {
+                    System.err.println("Failed to close socket: " + e.getMessage());
                 }
             }
             updateClient(client);
-            updateUIState();
         }
+        updateUIState();
+
         if (clientList.getSelectedValue() == client) {
-            chatArea.add(Utils.createMessageLabel(message.getContent(), false));
-            chatArea.revalidate();
-            chatArea.repaint();
+            addMessageAndUpdateUI(message.getContent(), false);
         }
     }
 
+    private void addMessageAndUpdateUI(String message, boolean isSent) {
+        chatArea.add(Utils.createMessageLabel(message, isSent));
+        updateChatArea();
+    }
 
+    private void updateChatArea() {
+        chatArea.revalidate();
+        chatArea.repaint();
+    }
 
 
 }
