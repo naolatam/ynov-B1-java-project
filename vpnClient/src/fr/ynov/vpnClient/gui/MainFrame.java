@@ -1,6 +1,8 @@
 package fr.ynov.vpnClient.gui;
 
 import fr.ynov.vpnClient.model.ClientSocket;
+import fr.ynov.vpnModel.model.ConfigurationMessage;
+import fr.ynov.vpnModel.model.Message;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +13,7 @@ import java.util.List;
 
 public class MainFrame extends JFrame {
     private final LoginPanel lp = new LoginPanel(this);
-    private final MainPanel mp = new MainPanel();
+    private final MainPanel mp = new MainPanel(this);
     private final String title;
     private CardLayout cl;
     private JPanel mainPanel;
@@ -59,6 +61,7 @@ public class MainFrame extends JFrame {
     public void addSocket(ClientSocket cs) {
         mp.addClient(cs);
         this.csList.add(cs);
+        setListeners(cs);
     }
 
     public void closeSocket(ClientSocket cs) {
@@ -70,5 +73,17 @@ public class MainFrame extends JFrame {
         }
     }
 
+    private void setListeners(ClientSocket s) {
+
+        s.setOnMessage((ClientSocket cs, Message msg) -> {
+            System.out.println("From: " + cs.toString() + ", Message: " + msg.getContent());
+            mp.receiveMessage(cs, msg);
+        });
+
+        s.setOnMessageConfiguration((ClientSocket cs, ConfigurationMessage confMessage) -> {
+            System.out.println("From: " + cs.toString() + ", Message: " + confMessage.getContent());
+            mp.updateClient(cs);
+        });
+    }
 
 }

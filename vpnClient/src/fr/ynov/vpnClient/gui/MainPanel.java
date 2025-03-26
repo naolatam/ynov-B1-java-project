@@ -21,11 +21,15 @@ public class MainPanel extends JPanel {
     private final JPanel chatArea;
     private final JTextField messageField;
     private final JLabel socketName;
-    private final JButton sendButton;
-    private final JButton closeButton;
+    private final JButton sendButton, closeButton, deleteButton;
+    private final JButton addClientButton; // New button to add a connection
+
+    private final MainFrame mainFrame;
+
+    public MainPanel(MainFrame mainFrame) {
+        this.mainFrame = mainFrame;
 
 
-    public MainPanel() {
         setLayout(new BorderLayout());
 
         // Liste des clients connectés
@@ -37,6 +41,18 @@ public class MainPanel extends JPanel {
         clientList.setForeground(StyleSet.labelTextColor);
         JScrollPane listScroll = new JScrollPane(clientList);
         listScroll.setPreferredSize(new Dimension(200, 0));
+
+        // Button to add a new connection
+        addClientButton = new JButton("+");
+        addClientButton.setFont(new Font("Arial", Font.BOLD, 16));
+        addClientButton.setFocusPainted(false);
+        addClientButton.setBackground(StyleSet.buttonBackgroundColor);
+        addClientButton.setForeground(StyleSet.buttonTextColor);
+        addClientButton.addActionListener(this::addNewConnection);
+
+        JPanel clientPanel = new JPanel(new BorderLayout());
+        clientPanel.add(listScroll, BorderLayout.CENTER);
+        clientPanel.add(addClientButton, BorderLayout.SOUTH);
 
         // Zone de chat
         chatArea = new JPanel();
@@ -50,13 +66,20 @@ public class MainPanel extends JPanel {
         JPanel inputPanel = new JPanel(new BorderLayout());
         messageField = new JTextField();
         sendButton = new JButton("Send");
+        deleteButton = new JButton("Delete");
 
         messageField.setBackground(StyleSet.backgroundColor);
         messageField.setForeground(StyleSet.labelTextColor);
         inputPanel.setBackground(StyleSet.backgroundColor);
         sendButton.setEnabled(false);
+        deleteButton.setEnabled(false);
+
         styleButton(sendButton);
+        styleButton(deleteButton);
+        deleteButton.setBackground(StyleSet.deleteButtonBackground);
+
         sendButton.addActionListener(this::sendMessage);
+        deleteButton.addActionListener(this::deleteSocket);
 
         inputPanel.add(messageField, BorderLayout.CENTER);
         inputPanel.add(sendButton, BorderLayout.EAST);
@@ -73,15 +96,18 @@ public class MainPanel extends JPanel {
         infoPanel.add(socketName, BorderLayout.CENTER);
         infoPanel.add(closeButton, BorderLayout.EAST);
 
-
         // Séparateur entre la liste des clients et le chat
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroll, chatScroll);
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, clientPanel, chatScroll);
         splitPane.setDividerLocation(200);
         splitPane.setResizeWeight(0.3);
 
         add(splitPane, BorderLayout.CENTER);
         add(inputPanel, BorderLayout.SOUTH);
         add(infoPanel, BorderLayout.NORTH);
+    }
+
+    private void addNewConnection(ActionEvent e) {
+        this.mainFrame.showLoginPanel();
     }
 
     private void loadConversation() {
@@ -93,7 +119,9 @@ public class MainPanel extends JPanel {
             socketName.setText("Discuss: " + selectedClient.getServerName());
             closeButton.setEnabled(true);
             sendButton.setEnabled(true);
+            deleteButton.setEnabled(false);
             if (selectedClient.isClosed()) {
+                deleteButton.setEnabled(true);
                 sendButton.setEnabled(false);
                 closeButton.setEnabled(false);
             }
@@ -116,7 +144,7 @@ public class MainPanel extends JPanel {
                     }
                     return;
                 }
-                boolean isSent = message.getOrigin() == Origin.SERVER;
+                boolean isSent = message.getOrigin() == Origin.CLIENT;
                 chatArea.add(createMessageLabel(message.getContent(), isSent));
                 chatArea.revalidate();
                 chatArea.repaint();
@@ -145,6 +173,8 @@ public class MainPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Impossible d'envoyer le message", "Erreur", JOptionPane.ERROR_MESSAGE);
             } catch (NoSuchAlgorithmException ex) {
                 throw new RuntimeException(ex);
+            } catch (NoSuchPaddingException ex) {
+                throw new RuntimeException(ex);
             }
 
             messageField.setText("");
@@ -155,18 +185,28 @@ public class MainPanel extends JPanel {
     private void closeSocket(ActionEvent e) {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
-            ErrorFrame.showError("Unable to send message. This socket is undefined.");
+            ErrorFrame.showError("Unable to close connection. This socket is undefined.");
             return;
         }
         try {
-            selectedClient.sendMessage("Server close connection", false);
+            selectedClient.sendMessage("CLIENT close connection", false);
             selectedClient.close();
             loadConversation();
         } catch (IOException ex) {
-            ErrorFrame.showError("Unable to send message. Error: " + ex.getMessage());
+            ErrorFrame.showError("Unable to close connection. Error: " + ex.getMessage());
         } catch (NoSuchAlgorithmException ex) {
             // Cannot append because
+        } catch (NoSuchPaddingException ex) {
+            throw new RuntimeException(ex);
         }
+    }
+
+    private void deleteSocket(ActionEvent e) {
+        ClientSocket selectedClient = clientList.getSelectedValue();
+        if (selectedClient == null) {
+            ErrorFrame.showError("Unable to close connection. This socket is undefined.");
+        }
+        clientListModel.removeElement(selectedClient);
     }
 
     public void addClient(ClientSocket socket) {
@@ -188,7 +228,6 @@ public class MainPanel extends JPanel {
             chatArea.add(createMessageLabel(message.getContent(), false));
             chatArea.revalidate();
             chatArea.repaint();
-
         }
     }
 
@@ -202,8 +241,8 @@ public class MainPanel extends JPanel {
 
     private JLabel createConfigMessageLabel(String text) {
         JLabel configLabel = new JLabel(text);
-        configLabel.setFont(new Font("Arial", Font.ITALIC, 14)); // Italic font for distinction
-        configLabel.setForeground(StyleSet.labelTextColor); // Uses your theme color
+        configLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+        configLabel.setForeground(StyleSet.labelTextColor);
         configLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
         return configLabel;
     }
@@ -213,16 +252,9 @@ public class MainPanel extends JPanel {
         messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         messageLabel.setOpaque(true);
         messageLabel.setForeground(Color.WHITE);
-
-        if (isSent) {
-            messageLabel.setBackground(new Color(0, 123, 255));
-        } else {
-            messageLabel.setBackground(new Color(230, 230, 230));
-        }
-        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 10)); // Padding for message bubble
+        messageLabel.setBackground(isSent ? new Color(0, 123, 255) : new Color(230, 230, 230));
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 10));
 
         return messageLabel;
     }
-
-
 }

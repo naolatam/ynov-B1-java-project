@@ -59,6 +59,7 @@ public class ClientSocket extends Socket implements EventInterface {
         try {
             String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
             ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
+            this.messages.add(confMessage);
             sendMessage(confMessage);
         } catch (IOException ex) {
             try {this.close();} catch (IOException ex1) {}
@@ -69,6 +70,7 @@ public class ClientSocket extends Socket implements EventInterface {
     public void sendName() {
         try {
             ConfigurationMessage confMessage = new ConfigurationMessage(name, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.SET_NAME);
+            this.messages.add(confMessage);
             confMessage.encrypt(this.serverKey);
             sendMessage(confMessage);
         } catch (IOException ex) {
@@ -134,20 +136,13 @@ public class ClientSocket extends Socket implements EventInterface {
         }
     }
 
-    public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException {
-        Message msg = null;
+    public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException, NoSuchPaddingException {
+        Message msg = new Message(content, Origin.CLIENT, crypted, MessageType.MESSAGE);
+        this.messages.add(msg);
         if(crypted) {
-            try {
-
-                CryptedMessage cMsg = new CryptedMessage(content, Origin.CLIENT, crypted, MessageType.MESSAGE);
-                cMsg.encrypt(this.serverKey);
-                msg = cMsg;
-            } catch (Exception e) {
-                System.out.println("IO Exception: "+ e.toString());
-                sendMessage(content, false);
-            }
-        }else {
-            msg = new Message(content, Origin.CLIENT, crypted, MessageType.MESSAGE);
+            CryptedMessage cMsg = new CryptedMessage(content, Origin.CLIENT, true, MessageType.MESSAGE);
+            cMsg.encrypt(this.serverKey);
+            msg = cMsg;
         }
         sendMessage(msg);
     }
@@ -179,6 +174,7 @@ public class ClientSocket extends Socket implements EventInterface {
             if(confMessage.getConfiguration() == SocketConfiguration.SET_NAME) {
                 this.serverName = confMessage.getContent();
             }
+            this.messages.add(confMessage);
             onMessageConfiguration(this, confMessage);
         } catch (Exception e) {
             throw new RuntimeException(e);
