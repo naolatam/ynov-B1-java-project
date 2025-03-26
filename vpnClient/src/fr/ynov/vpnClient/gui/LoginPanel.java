@@ -2,6 +2,7 @@ package fr.ynov.vpnClient.gui;
 
 import fr.ynov.vpnClient.model.ClientSocket;
 import fr.ynov.vpnClient.utils.Utils;
+import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
 
 import javax.crypto.KeyGenerator;

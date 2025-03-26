@@ -3,6 +3,7 @@ package fr.ynov.vpnClient.gui;
 import fr.ynov.vpnClient.model.ClientSocket;
 import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
+import fr.ynov.vpnModel.gui.Utils;
 import fr.ynov.vpnModel.model.ConfigurationMessage;
 import fr.ynov.vpnModel.model.Message;
 import fr.ynov.vpnModel.model.MessageType;
@@ -66,20 +67,15 @@ public class MainPanel extends JPanel {
         JPanel inputPanel = new JPanel(new BorderLayout());
         messageField = new JTextField();
         sendButton = new JButton("Send");
-        deleteButton = new JButton("Delete");
 
         messageField.setBackground(StyleSet.backgroundColor);
         messageField.setForeground(StyleSet.labelTextColor);
         inputPanel.setBackground(StyleSet.backgroundColor);
         sendButton.setEnabled(false);
-        deleteButton.setEnabled(false);
 
-        styleButton(sendButton);
-        styleButton(deleteButton);
-        deleteButton.setBackground(StyleSet.deleteButtonBackground);
+        StyleSet.styleButton(sendButton);
 
         sendButton.addActionListener(this::sendMessage);
-        deleteButton.addActionListener(this::deleteSocket);
 
         inputPanel.add(messageField, BorderLayout.CENTER);
         inputPanel.add(sendButton, BorderLayout.EAST);
@@ -87,14 +83,22 @@ public class MainPanel extends JPanel {
         JPanel infoPanel = new JPanel(new BorderLayout());
         socketName = new JLabel("No discuss");
         closeButton = new JButton("Close");
+        deleteButton = new JButton("Delete");
         infoPanel.setBackground(StyleSet.backgroundColor);
         socketName.setForeground(StyleSet.titleTextColor);
         closeButton.setEnabled(false);
-        styleButton(closeButton);
+        deleteButton.setEnabled(false);
+        StyleSet.styleButton(closeButton);
+        StyleSet.styleButton(deleteButton);
+        deleteButton.setBackground(StyleSet.deleteButtonBackground);
+        deleteButton.setForeground(StyleSet.labelTextColor);
+
+        deleteButton.addActionListener(this::deleteSocket);
         closeButton.addActionListener(this::closeSocket);
 
         infoPanel.add(socketName, BorderLayout.CENTER);
         infoPanel.add(closeButton, BorderLayout.EAST);
+        infoPanel.add(deleteButton, BorderLayout.WEST);
 
         // Séparateur entre la liste des clients et le chat
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, clientPanel, chatScroll);
@@ -130,13 +134,13 @@ public class MainPanel extends JPanel {
                 if (message.getType() == MessageType.CONFIG) {
                     switch (((ConfigurationMessage) message).getConfiguration()) {
                         case SET_NAME -> chatArea.add(
-                                createConfigMessageLabel(
+                                Utils.createConfigMessageLabel(
                                         message.getOrigin().name()
                                                 + " send his name: "
                                                 + message.getContent()
                                 ));
                         case GET_PUBLIC_KEY, SEND_PUBLIC_KEY -> chatArea.add(
-                                createConfigMessageLabel(
+                                Utils.createConfigMessageLabel(
                                         message.getOrigin().name()
                                                 + " send his key"
                                 )
@@ -145,7 +149,7 @@ public class MainPanel extends JPanel {
                     return;
                 }
                 boolean isSent = message.getOrigin() == Origin.CLIENT;
-                chatArea.add(createMessageLabel(message.getContent(), isSent));
+                chatArea.add(Utils.createMessageLabel(message.getContent(), isSent));
                 chatArea.revalidate();
                 chatArea.repaint();
             });
@@ -165,7 +169,7 @@ public class MainPanel extends JPanel {
             try {
                 selectedClient.sendMessage(message, true);
 
-                chatArea.add(createMessageLabel(message, true));
+                chatArea.add(Utils.createMessageLabel(message, true));
                 chatArea.revalidate();
                 chatArea.repaint();
 
@@ -207,6 +211,7 @@ public class MainPanel extends JPanel {
             ErrorFrame.showError("Unable to close connection. This socket is undefined.");
         }
         clientListModel.removeElement(selectedClient);
+        loadConversation();
     }
 
     public void addClient(ClientSocket socket) {
@@ -225,36 +230,13 @@ public class MainPanel extends JPanel {
     public void receiveMessage(ClientSocket client, Message message) {
         if (message.isCrypted()) message.setContent("Unable to decrypt this message");
         if (clientList.getSelectedValue() == client) {
-            chatArea.add(createMessageLabel(message.getContent(), false));
+            chatArea.add(Utils.createMessageLabel(message.getContent(), false));
             chatArea.revalidate();
             chatArea.repaint();
         }
     }
 
-    private void styleButton(JButton button) {
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setForeground(StyleSet.buttonTextColor);
-        button.setBackground(StyleSet.buttonBackgroundColor);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        button.setFocusPainted(false);
-    }
 
-    private JLabel createConfigMessageLabel(String text) {
-        JLabel configLabel = new JLabel(text);
-        configLabel.setFont(new Font("Arial", Font.ITALIC, 14));
-        configLabel.setForeground(StyleSet.labelTextColor);
-        configLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return configLabel;
-    }
 
-    private JLabel createMessageLabel(String text, boolean isSent) {
-        JLabel messageLabel = new JLabel(text);
-        messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        messageLabel.setOpaque(true);
-        messageLabel.setForeground(Color.WHITE);
-        messageLabel.setBackground(isSent ? new Color(0, 123, 255) : new Color(230, 230, 230));
-        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 10));
 
-        return messageLabel;
-    }
 }

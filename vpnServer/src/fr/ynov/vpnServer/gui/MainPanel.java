@@ -2,6 +2,7 @@ package fr.ynov.vpnServer.gui;
 
 import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
+import fr.ynov.vpnModel.gui.Utils;
 import fr.ynov.vpnModel.model.ConfigurationMessage;
 import fr.ynov.vpnModel.model.Message;
 import fr.ynov.vpnModel.model.MessageType;
@@ -55,7 +56,7 @@ public class MainPanel extends JPanel {
         messageField.setForeground(StyleSet.labelTextColor);
         inputPanel.setBackground(StyleSet.backgroundColor);
         sendButton.setEnabled(false);
-        styleButton(sendButton);
+        StyleSet.styleButton(sendButton);
         sendButton.addActionListener(this::sendMessage);
 
         inputPanel.add(messageField, BorderLayout.CENTER);
@@ -67,7 +68,7 @@ public class MainPanel extends JPanel {
         infoPanel.setBackground(StyleSet.backgroundColor);
         socketName.setForeground(StyleSet.titleTextColor);
         closeButton.setEnabled(false);
-        styleButton(closeButton);
+        StyleSet.styleButton(closeButton);
         closeButton.addActionListener(this::closeSocket);
 
         infoPanel.add(socketName, BorderLayout.CENTER);
@@ -102,13 +103,13 @@ public class MainPanel extends JPanel {
                 if (message.getType() == MessageType.CONFIG) {
                     switch (((ConfigurationMessage) message).getConfiguration()) {
                         case SET_NAME -> chatArea.add(
-                                createConfigMessageLabel(
+                                Utils.createConfigMessageLabel(
                                         message.getOrigin().name()
                                                 + " send his name: "
                                                 + message.getContent()
                                 ));
                         case GET_PUBLIC_KEY, SEND_PUBLIC_KEY -> chatArea.add(
-                                createConfigMessageLabel(
+                                Utils.createConfigMessageLabel(
                                         message.getOrigin().name()
                                                 + " send his key"
                                 )
@@ -117,7 +118,7 @@ public class MainPanel extends JPanel {
                     return;
                 }
                 boolean isSent = message.getOrigin() == Origin.SERVER;
-                chatArea.add(createMessageLabel(message.getContent(), isSent));
+                chatArea.add(Utils.createMessageLabel(message.getContent(), isSent));
                 chatArea.revalidate();
                 chatArea.repaint();
             });
@@ -137,7 +138,7 @@ public class MainPanel extends JPanel {
             try {
                 selectedClient.sendMessage(message, true);
 
-                chatArea.add(createMessageLabel(message, true));
+                chatArea.add(Utils.createMessageLabel(message, true));
                 chatArea.revalidate();
                 chatArea.repaint();
 
@@ -187,44 +188,13 @@ public class MainPanel extends JPanel {
     public void receiveMessage(CustomSocket client, Message message) {
         if (message.isCrypted()) message.setContent("Unable to decrypt this message");
         if (clientList.getSelectedValue() == client) {
-            chatArea.add(createMessageLabel(message.getContent(), false));
+            chatArea.add(Utils.createMessageLabel(message.getContent(), false));
             chatArea.revalidate();
             chatArea.repaint();
 
         }
     }
 
-    private void styleButton(JButton button) {
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setForeground(StyleSet.buttonTextColor);
-        button.setBackground(StyleSet.buttonBackgroundColor);
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        button.setFocusPainted(false);
-    }
-
-    private JLabel createConfigMessageLabel(String text) {
-        JLabel configLabel = new JLabel(text);
-        configLabel.setFont(new Font("Arial", Font.ITALIC, 14)); // Italic font for distinction
-        configLabel.setForeground(StyleSet.labelTextColor); // Uses your theme color
-        configLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        return configLabel;
-    }
-
-    private JLabel createMessageLabel(String text, boolean isSent) {
-        JLabel messageLabel = new JLabel(text);
-        messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        messageLabel.setOpaque(true);
-        messageLabel.setForeground(Color.WHITE);
-
-        if (isSent) {
-            messageLabel.setBackground(new Color(0, 123, 255));
-        } else {
-            messageLabel.setBackground(new Color(230, 230, 230));
-        }
-        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 10)); // Padding for message bubble
-
-        return messageLabel;
-    }
 
 
 }
