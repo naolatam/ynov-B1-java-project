@@ -89,9 +89,13 @@ public class CustomSocket {
             BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
             Message msg;
             String line;
-            while (this.socket.isConnected() && (line = in.readLine()) != null) {
+            while (!this.socket.isClosed() && (line = in.readLine()) != null) {
                 msg = mapper.readValue(line, Message.class);
                 return msg;
+            }
+            if(in.readLine() == null) {
+                this.socket.close();
+                throw new IOException("Socket Closed");
             }
         } catch (IOException e) {
             if (!socket.isClosed()) {

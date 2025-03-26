@@ -104,7 +104,7 @@ public class MainPanel extends JPanel {
         return button;
     }
 
-    private void updateUIState() {
+    public void updateUIState() {
         CustomSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
             socketName.setText("Discussion: " + selectedClient);
@@ -194,6 +194,15 @@ public class MainPanel extends JPanel {
         }
     }
 
+    public void disconnectSocket(CustomSocket client) {
+        ConfigurationMessage closeMsg = new ConfigurationMessage("CLIENT disconnected", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
+        client.addMessage(closeMsg);
+        client.sendMessage(closeMsg);
+        updateUIState();
+        updateClient(client);
+        addMessageAndUpdateUI(closeMsg.getContent(), false);
+    }
+
     private void deleteSocket(ActionEvent e) {
         CustomSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
@@ -226,7 +235,7 @@ public class MainPanel extends JPanel {
             try {
                 client.getSocket().close();
             } catch (IOException e) {
-                if(!client.getSocket().isClosed()) {
+                if (!client.getSocket().isClosed()) {
                     System.err.println("Failed to close socket: " + e.getMessage());
                 }
             }
@@ -241,6 +250,7 @@ public class MainPanel extends JPanel {
         chatArea.add(Utils.createMessageLabel(message, isSent));
         updateChatArea();
     }
+
     private void updateChatArea() {
         chatArea.revalidate();
         chatArea.repaint();

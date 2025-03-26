@@ -71,12 +71,18 @@ public class MainFrame extends JFrame {
 
     private void setListener() {
         this.ss.setOnConnect(this::handleConnection);
+        this.ss.setOnDisconnect(this::handleDisconnect);
         this.ss.setOnMessage(this::handleIncomingMessage);
         this.ss.setOnMessageConfiguration(this::handleConfigurationMessage);
     }
 
     private Void handleConnection(CustomSocket cs) {
         mp.addClient(cs);
+        return null;
+    }
+
+    private Void handleDisconnect(CustomSocket cs) {
+        mp.disconnectSocket(cs);
         return null;
     }
 

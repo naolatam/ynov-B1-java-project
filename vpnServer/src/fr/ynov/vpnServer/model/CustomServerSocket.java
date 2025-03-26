@@ -79,8 +79,8 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
         }
     }
 
-    private void handleMessage(CustomSocket socket) {
-        while (socket != null && socket.getSocket().isConnected()) {
+    private void handleMessage(CustomSocket socket) throws IOException {
+        while (socket != null && !socket.getSocket().isClosed() ) {
             Message msg = socket.listenForMessage();
             if (msg != null) {
                 if (msg.getType() == MessageType.CONFIG) {
