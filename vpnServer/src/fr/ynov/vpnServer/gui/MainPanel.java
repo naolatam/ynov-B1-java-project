@@ -2,12 +2,8 @@ package fr.ynov.vpnServer.gui;
 
 import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
+import fr.ynov.vpnModel.model.*;
 import fr.ynov.vpnServer.model.CustomSocket;
-import fr.ynov.vpnModel.model.Message;
-import fr.ynov.vpnModel.model.ConfigurationMessage;
-import fr.ynov.vpnModel.model.CryptedMessage;
-import fr.ynov.vpnModel.model.MessageType;
-import fr.ynov.vpnModel.model.SocketConfiguration;
 import fr.ynov.vpnServer.model.CustomSocket;
 
 
@@ -26,27 +22,30 @@ import java.net.Socket;
 public class MainPanel extends JPanel {
         private DefaultListModel<CustomSocket> clientListModel;
         private JList<CustomSocket> clientList;
-        private JTextArea chatArea;
+        private JPanel chatArea;
         private JTextField messageField;
-        private JButton sendButton;
+        private JLabel socketName;
+        private JButton sendButton, closeButton;
         private HashMap<CustomSocket, StringBuilder> chatHistory;
 
-        public MainPanel() {
+
+    public MainPanel() {
             setLayout(new BorderLayout());
 
             // Liste des clients connectés
             clientListModel = new DefaultListModel<>();
             clientList = new JList<>(clientListModel);
             clientList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                clientList.addListSelectionListener(e -> loadConversation());
-
+            clientList.addListSelectionListener(e -> loadConversation());
+            clientList.setBackground(StyleSet.backgroundColor);
+            clientList.setForeground(StyleSet.labelTextColor);
             JScrollPane listScroll = new JScrollPane(clientList);
             listScroll.setPreferredSize(new Dimension(200, 0));
 
             // Zone de chat
-            chatArea = new JTextArea();
-            chatArea.setEditable(false);
+            chatArea = new JPanel();
             chatArea.setFont(new Font("Arial", Font.PLAIN, 14));
+            chatArea.setLayout(new BoxLayout(chatArea, BoxLayout.Y_AXIS));
             chatArea.setBackground(StyleSet.backgroundColor);
             chatArea.setForeground(StyleSet.titleTextColor);
             JScrollPane chatScroll = new JScrollPane(chatArea);
@@ -54,12 +53,30 @@ public class MainPanel extends JPanel {
             // Champ de saisie et bouton envoyer
             JPanel inputPanel = new JPanel(new BorderLayout());
             messageField = new JTextField();
-            sendButton = new JButton("Envoyer");
+            sendButton = new JButton("Send");
+
+            messageField.setBackground(StyleSet.backgroundColor);
+            messageField.setForeground(StyleSet.labelTextColor);
+            inputPanel.setBackground(StyleSet.backgroundColor);
+            sendButton.setEnabled(false);
             styleButton(sendButton);
             sendButton.addActionListener(this::sendMessage);
 
             inputPanel.add(messageField, BorderLayout.CENTER);
             inputPanel.add(sendButton, BorderLayout.EAST);
+
+            JPanel infoPanel = new JPanel(new BorderLayout());
+            socketName = new JLabel("No discuss");
+            closeButton = new JButton("Close");
+            infoPanel.setBackground(StyleSet.backgroundColor);
+            socketName.setForeground(StyleSet.titleTextColor);
+            closeButton.setEnabled(false);
+            styleButton(closeButton);
+            closeButton.addActionListener(this::closeSocket);
+
+            infoPanel.add(socketName, BorderLayout.CENTER);
+            infoPanel.add(closeButton, BorderLayout.EAST);
+
 
             // Séparateur entre la liste des clients et le chat
             JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroll, chatScroll);
@@ -68,29 +85,48 @@ public class MainPanel extends JPanel {
 
             add(splitPane, BorderLayout.CENTER);
             add(inputPanel, BorderLayout.SOUTH);
-
+            add(infoPanel, BorderLayout.NORTH);
             chatHistory = new HashMap<>();
         }
 
         private void loadConversation() {
+            chatArea.removeAll();
+            chatArea.revalidate();
+            chatArea.repaint();
             CustomSocket selectedClient = clientList.getSelectedValue();
             if (selectedClient != null) {
+                socketName.setText("Discuss: "+selectedClient.getName());
+                closeButton.setEnabled(true);
                 sendButton.setEnabled(true);
                 if(selectedClient.getSocket().isClosed()) {
                     sendButton.setEnabled(false);
+                    closeButton.setEnabled(false);
                 }
-                ArrayList<String> content = new ArrayList<>();
+
                 selectedClient.getMessages().forEach(message -> {
                     if(message.getType() == MessageType.CONFIG) {
-                        if(((ConfigurationMessage) message).getConfiguration() == SocketConfiguration.SET_NAME) {
-                            content.add(message.getOrigin().name() + " send his name: "  + message.getContent());
-                            return;
+                        switch (((ConfigurationMessage) message).getConfiguration()) {
+                            case SET_NAME -> chatArea.add(
+                                    createConfigMessageLabel(
+                                            message.getOrigin().name()
+                                            + " send his name: "
+                                            + message.getContent()
+                                    ));
+                            case GET_PUBLIC_KEY, SEND_PUBLIC_KEY -> chatArea.add(
+                                    createConfigMessageLabel(
+                                            message.getOrigin().name()
+                                            + " send his key"
+                                    )
+                                );
                         }
+                        return;
                     }
-                    content.add(message.getContent());
+                    boolean isSent = message.getOrigin() == Origin.SERVER;
+                    chatArea.add(createMessageLabel(message.getContent(), isSent));
+                    chatArea.revalidate();
+                    chatArea.repaint();
                 });
 
-                chatArea.setText(content.toString());
             }
         }
 
@@ -101,14 +137,14 @@ public class MainPanel extends JPanel {
                 return;
             }
             if (!messageField.getText().trim().isEmpty()) {
-                String message = selectedClient.getName().substring(0, 20) +  ": " + messageField.getText().trim();
+                String message = messageField.getText().trim();
 
                 try {
                     selectedClient.sendMessage(message, true);
-                    chatHistory.putIfAbsent(selectedClient, new StringBuilder());
-                    chatHistory.get(selectedClient).append(message).append("\n");
 
-                    chatArea.append(message + "\n");
+                    chatArea.add(createMessageLabel(message, true));
+                    chatArea.revalidate();
+                    chatArea.repaint();
 
                 } catch (IOException ex) {
                     JOptionPane.showMessageDialog(this, "Impossible d'envoyer le message", "Erreur", JOptionPane.ERROR_MESSAGE);
@@ -117,6 +153,26 @@ public class MainPanel extends JPanel {
                 }
 
                 messageField.setText("");
+                messageField.grabFocus();
+            }
+        }
+
+        private void closeSocket(ActionEvent e) {
+        CustomSocket selectedClient = clientList.getSelectedValue();
+        if(selectedClient == null ) {
+            ErrorFrame.showError("Unable to send message. This socket is undefined.");
+            return;
+        }
+            try {
+                selectedClient.sendMessage("Server close connection", false);
+                selectedClient.getSocket().close();
+                loadConversation();
+            } catch (IOException ex) {
+                ErrorFrame.showError("Unable to send message. Error: " + ex.getMessage());
+            } catch (NoSuchPaddingException ex) {
+                throw new RuntimeException(ex);
+            } catch (NoSuchAlgorithmException ex) {
+                // Cannot append because
             }
         }
 
@@ -136,11 +192,11 @@ public class MainPanel extends JPanel {
 
         public void receiveMessage(CustomSocket client, Message message) {
             if(message.isCrypted()) message.setContent("Unable to decrypt this message");
-            chatHistory.putIfAbsent(client, new StringBuilder());
-            chatHistory.get(client).append(message.getContent()).append("\n");
-
             if (clientList.getSelectedValue() == client) {
-                chatArea.append(message.getContent() + "\n");
+                chatArea.add(createMessageLabel(message.getContent(), false));
+                chatArea.revalidate();
+                chatArea.repaint();
+
             }
         }
 
@@ -151,6 +207,30 @@ public class MainPanel extends JPanel {
             button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
             button.setFocusPainted(false);
         }
+
+    private JLabel createConfigMessageLabel(String text) {
+        JLabel configLabel = new JLabel(text);
+        configLabel.setFont(new Font("Arial", Font.ITALIC, 14)); // Italic font for distinction
+        configLabel.setForeground(StyleSet.labelTextColor); // Uses your theme color
+        configLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return configLabel;
+    }
+
+    private JLabel createMessageLabel(String text, boolean isSent) {
+        JLabel messageLabel = new JLabel(text);
+        messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        messageLabel.setOpaque(true);
+        messageLabel.setForeground(Color.WHITE);
+
+        if (isSent) {
+            messageLabel.setBackground(new Color(0, 123, 255));
+        } else {
+            messageLabel.setBackground(new Color(230, 230, 230));
+        }
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 10)); // Padding for message bubble
+
+        return messageLabel;
+    }
 
 
 

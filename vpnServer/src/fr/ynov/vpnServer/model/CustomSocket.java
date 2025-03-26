@@ -1,5 +1,7 @@
 package fr.ynov.vpnServer.model;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.crypto.NoSuchPaddingException;
@@ -70,7 +72,7 @@ public class CustomSocket {
         }
         sendMessage(msg);
     }
-    public void sendMessage(Message msg) throws IOException, AssertionError {
+    public void sendMessage(Message msg) {
         try {
             PrintWriter output = new PrintWriter(this.socket.getOutputStream(), true);
             assert msg != null;
@@ -82,12 +84,14 @@ public class CustomSocket {
         }
     }
 
-    public Message listenForMessage() throws IOException {
+    public Message listenForMessage() {
+        if(this.socket.isClosed()) {
+            return null;
+        }
         try {
 
             BufferedReader in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
             Message msg;
-            ConfigurationMessage confMessage;
             String line;
             ObjectMapper mapper = new ObjectMapper();
             while (this.socket.isConnected() && (line = in.readLine()) != null) {
@@ -95,10 +99,16 @@ public class CustomSocket {
                 msg = mapper.readValue(line, Message.class);
                 return msg;
             }
-        } catch (IOException e) {
+        } catch (java.net.SocketException e) {
+            if(socket.isClosed()) {
+                return null;
+            }
             e.printStackTrace();
-            System.out.println("IO Exception: " + e.toString());
-        } catch (Exception e) {
+        } catch (JsonParseException e) {
+            throw new RuntimeException(e);
+        } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return null;

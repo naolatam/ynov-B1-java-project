@@ -96,7 +96,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
     }
 
     private void handleMessage(CustomSocket socket) throws Exception {
-        while (socket.getSocket().isConnected()) {
+        while (socket != null && socket.getSocket() != null && socket.getSocket().isConnected()) {
             try {
                 Message msg = socket.listenForMessage();
                 if (msg != null) {
@@ -115,7 +115,6 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 onMessage(socket, msg);
             }catch (Exception e) {
 
-                e.printStackTrace();
             }
         }
         if(socket.getSocket().isClosed()) {
