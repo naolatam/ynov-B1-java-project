@@ -4,6 +4,7 @@ import fr.ynov.vpnClient.model.ClientSocket;
 import fr.ynov.vpnClient.utils.Utils;
 import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
+import fr.ynov.vpnModel.gui.SuccessFrame;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -149,7 +150,7 @@ public class LoginPanel extends JPanel {
                 try {
                     Integer success = get();
                     if (success==0) {
-                        JOptionPane.showMessageDialog(LoginPanel.this, "Connexion réussi !", "Erreur", JOptionPane.ERROR_MESSAGE);
+                        SuccessFrame.showSuccess("Client socket connected: " + fqdn + ":" + port);
                         mf.showMainPanel();
                     } else if(success==-1) {
                         ErrorFrame.showError("Unable to connect to " + fqdn + ":" + port + "!");
