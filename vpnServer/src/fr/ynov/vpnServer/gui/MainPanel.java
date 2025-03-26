@@ -179,6 +179,7 @@ public class MainPanel extends JPanel {
         try {
             ConfigurationMessage cMsg = new ConfigurationMessage("SERVER close the connection", Origin.SERVER, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
             selectedClient.addMessage(cMsg);
+            chatArea.add(Utils.createMessageLabel(cMsg.getContent(), true));
             selectedClient.sendMessage(cMsg);
             selectedClient.getSocket().close();
             updateClient(selectedClient);
