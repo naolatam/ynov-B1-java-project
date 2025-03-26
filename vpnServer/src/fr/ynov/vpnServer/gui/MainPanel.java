@@ -78,6 +78,7 @@ public class MainPanel extends JPanel {
 
         infoPanel.add(socketName, BorderLayout.CENTER);
         infoPanel.add(closeButton, BorderLayout.EAST);
+        infoPanel.add(deleteButton, BorderLayout.WEST);
 
 
         // Séparateur entre la liste des clients et le chat
@@ -183,7 +184,7 @@ public class MainPanel extends JPanel {
             // Cannot append because
         }
     }
-    private void deleteSocket() {
+    private void deleteSocket(ActionEvent e) {
         CustomSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
             ErrorFrame.showError("Unable to delete this. This socket is undefined.");
