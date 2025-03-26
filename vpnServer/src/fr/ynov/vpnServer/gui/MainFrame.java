@@ -78,6 +78,11 @@ public class MainFrame  extends JFrame {
             return null;
         });
 
+        this.ss.setOnMessage((CustomSocket cs, Message msg) -> {
+            System.out.println("From: " + cs.toString() + ", Message: " + msg.getContent());
+            mp.receiveMessage(cs, msg);
+        });
+
         this.ss.setOnMessageConfiguration((CustomSocket cs, ConfigurationMessage confMessage) -> {
             System.out.println("From: " + cs.toString() + ", Message: " + confMessage.getContent());
             mp.updateClient(cs);

@@ -17,6 +17,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -26,7 +27,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
 
     private SecretKey privateKey;
     private SecretKey publicKey;
-    private List<Socket> clients;
+    private List<CustomSocket> clients = new ArrayList<>();
 
     private BiConsumer<CustomSocket, Message> onMessage;
     private BiConsumer<CustomSocket, ConfigurationMessage> onMessageConfiguration;
@@ -72,6 +73,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
             try {
                 Socket s = this.accept();
                 CustomSocket socket = new CustomSocket(s);
+                clients.add(socket);
                 onConnect(socket);
                 new Thread(() -> {
                     try {
@@ -121,36 +123,6 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
         }
     }
 
-
-
-    public void sendMessage(String content, Boolean crypted, CustomSocket socket)
-            throws IOException, AssertionError, NoSuchAlgorithmException {
-        Message msg = null;
-        if(crypted) {
-            try {
-                CryptedMessage cMsg = new CryptedMessage(content, Origin.SERVER, crypted, MessageType.MESSAGE);
-                cMsg.encrypt(this.publicKey);
-                msg = cMsg;
-            } catch (Exception e) {
-                System.out.println("IO Exception: "+ e.toString());
-                sendMessage(content, false, socket);
-            }
-        }else {
-            msg = new Message(content, Origin.SERVER, crypted, MessageType.MESSAGE);
-        }
-        assert msg != null;
-        sendMessage(msg, socket);
-    }
-
-    public void sendMessage(Message msg, CustomSocket socket) throws IOException, AssertionError {
-        try {
-            socket.sendMessage(msg);
-        } catch (IOException | AssertionError e){
-            e.printStackTrace();
-            System.out.println("IO Exception: "+ e.toString());
-        }
-    }
-
     private void parseConfigFromMessage(CustomSocket socket, ConfigurationMessage confMessage) {
         try {
             if(confMessage.getOrigin() != Origin.CLIENT) {return;}
@@ -174,6 +146,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 }
 
             }
+            socket.addMessage(confMessage);
             onMessageConfiguration(socket, confMessage);
         } catch (NoSuchPaddingException e) {
             throw new RuntimeException(e);
