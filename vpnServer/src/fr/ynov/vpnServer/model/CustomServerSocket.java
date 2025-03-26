@@ -94,8 +94,8 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                     msg = cryptedMessage;
                 }
                 socket.addMessage(msg);
+                onMessage(socket, msg);
             }
-            onMessage(socket, msg);
         }
         if (socket.getSocket().isClosed()) {
             onDisconnect(socket);

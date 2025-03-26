@@ -132,16 +132,15 @@ public class MainPanel extends JPanel {
         if (selectedClient != null) {
             selectedClient.getMessages().forEach(this::updateChatUI);
         }
+        updateChatArea();
 
-        chatArea.revalidate();
-        chatArea.repaint();
     }
 
     private void updateChatUI(Message message) {
         if (message.getType() == MessageType.CONFIG) {
             handleConfigMessage(message);
         } else {
-            chatArea.add(Utils.createMessageLabel(message.getContent(), message.getOrigin() == Origin.SERVER));
+            addMessageAndUpdateUI(message.getContent(), message.getOrigin() == Origin.SERVER);
         }
     }
 
@@ -166,7 +165,7 @@ public class MainPanel extends JPanel {
         if (!message.isEmpty()) {
             try {
                 selectedClient.sendMessage(message, true);
-                chatArea.add(Utils.createMessageLabel(message, true));
+                addMessageAndUpdateUI(message, true);
             } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException ex) {
                 ErrorFrame.showError("Failed to send message: " + ex.getMessage());
             }
@@ -182,12 +181,13 @@ public class MainPanel extends JPanel {
             ErrorFrame.showError("No socket selected.");
             return;
         }
-
         try {
             ConfigurationMessage closeMsg = new ConfigurationMessage("SERVER closed the connection", Origin.SERVER, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
             selectedClient.addMessage(closeMsg);
             selectedClient.sendMessage(closeMsg);
             selectedClient.getSocket().close();
+            updateUIState();
+            addMessageAndUpdateUI(closeMsg.getContent(), true);
             updateClient(selectedClient);
         } catch (IOException ex) {
             ErrorFrame.showError("Error closing socket: " + ex.getMessage());
@@ -200,8 +200,7 @@ public class MainPanel extends JPanel {
             clientListModel.removeElement(selectedClient);
             updateUIState();
             chatArea.removeAll();
-            chatArea.revalidate();
-            chatArea.repaint();
+            updateChatArea();
         }
     }
 
@@ -233,9 +232,16 @@ public class MainPanel extends JPanel {
         updateUIState();
 
         if (clientList.getSelectedValue() == client) {
-            chatArea.add(Utils.createMessageLabel(message.getContent(), false));
-            chatArea.revalidate();
-            chatArea.repaint();
+            addMessageAndUpdateUI(message.getContent(), false);
         }
+    }
+
+    private void addMessageAndUpdateUI(String message, boolean isSent) {
+        chatArea.add(Utils.createMessageLabel(message, isSent));
+        updateChatArea();
+    }
+    private void updateChatArea() {
+        chatArea.revalidate();
+        chatArea.repaint();
     }
 }
