@@ -50,7 +50,7 @@ public class SetupPanel extends JPanel {
         add(subTitle, gbc);
 
 
-
+        gbc.gridwidth = 1;
         gbc.gridx = 0;
         gbc.gridy++;
         JLabel lblPort = new JLabel("Port:");
@@ -65,7 +65,6 @@ public class SetupPanel extends JPanel {
         spPort.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         add(spPort, gbc);
 
-        gbc.gridwidth = 1;
         gbc.gridx = 0;
         gbc.gridy++;
         JLabel lblKey = new JLabel("AES Key:");
