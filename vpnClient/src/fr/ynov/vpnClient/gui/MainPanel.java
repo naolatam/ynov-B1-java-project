@@ -120,7 +120,7 @@ public class MainPanel extends JPanel {
         chatArea.repaint();
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
-            socketName.setText("Discuss: " + selectedClient.getServerName());
+            socketName.setText("Discuss: " + selectedClient);
             closeButton.setEnabled(true);
             sendButton.setEnabled(true);
             deleteButton.setEnabled(false);
@@ -155,6 +155,10 @@ public class MainPanel extends JPanel {
             });
 
         }
+        socketName.setText("No discuss");
+        closeButton.setEnabled(false);
+        sendButton.setEnabled(false);
+        deleteButton.setEnabled(false);
     }
 
     private void sendMessage(ActionEvent e) {

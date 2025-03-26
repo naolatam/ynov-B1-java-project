@@ -183,10 +183,17 @@ public class ClientSocket extends Socket implements EventInterface {
 
     @Override
     public String toString() {
+
+        String res = "";
         if(serverName == null) {
-            return uuid.toString();
+            res += uuid.toString();
+        }else {
+            res += serverName;
         }
-        return serverName;
+        if(this.isClosed()) {
+            res += " (closed)";
+        }
+        return res;
     }
 
     @Override
