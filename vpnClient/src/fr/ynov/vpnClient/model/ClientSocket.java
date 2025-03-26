@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 import fr.ynov.vpnModel.model.Message;
 import fr.ynov.vpnModel.model.CryptedMessage;
@@ -24,12 +26,18 @@ import fr.ynov.vpnModel.model.Origin;
 
 
 
-public class ClientSocket extends Socket {
+public class ClientSocket extends Socket implements EventInterface {
 
     private SecretKey privateKey;
     private SecretKey publicKey;
     private SecretKey serverKey;
     private List<Message> messages = new ArrayList<>();
+
+    private BiConsumer<ClientSocket, Message> onMessage;
+    private BiConsumer<ClientSocket, ConfigurationMessage> onMessageConfiguration;
+    private Function<ClientSocket, Void> onConnect;
+    private Function<ClientSocket, Void> onDisconnect;
+    private Function<ClientSocket, Void> onError;
 
     private UUID uuid = UUID.randomUUID();
     private String name;
@@ -92,7 +100,6 @@ public class ClientSocket extends Socket {
             Message msg;
             String line;
             ObjectMapper mapper = new ObjectMapper();
-
             while (this.isConnected() && (line = in.readLine()) != null) {
                 System.out.println("New line: " +line);
                 msg = mapper.readValue(line, Message.class);
@@ -115,6 +122,7 @@ public class ClientSocket extends Socket {
                     }
                 }
                 this.messages.add(msg);
+                onMessage(this, msg);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -171,7 +179,7 @@ public class ClientSocket extends Socket {
             if(confMessage.getConfiguration() == SocketConfiguration.SET_NAME) {
                 this.serverName = confMessage.getContent();
             }
-
+            onMessageConfiguration(this, confMessage);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -185,4 +193,63 @@ public class ClientSocket extends Socket {
         return serverName;
     }
 
+    @Override
+    public void onMessage(ClientSocket socket, Message message) {
+        if(onMessage != null) {
+            onMessage.accept(socket, message);
+        }
+    }
+
+    @Override
+    public void onMessageConfiguration(ClientSocket socket, ConfigurationMessage message) {
+        if(onMessageConfiguration != null) {
+            onMessageConfiguration.accept(socket, message);
+        }
+    }
+
+    @Override
+    public void onConnect(ClientSocket socket) {
+        if(onConnect != null) {
+            onConnect.apply(socket);
+        }
+    }
+
+    @Override
+    public void onDisconnect(ClientSocket socket) {
+        if(onDisconnect != null) {
+            onDisconnect.apply(socket);
+        }
+    }
+
+    @Override
+    public void onError(ClientSocket socket) {
+        if(onError != null) {
+            onError.apply(socket);
+        }
+    }
+
+    @Override
+    public void setOnMessage(BiConsumer<ClientSocket, Message> onMessage) {
+        this.onMessage = onMessage;
+    }
+
+    @Override
+    public void setOnMessageConfiguration(BiConsumer<ClientSocket, ConfigurationMessage> onMessageConfiguration) {
+        this.onMessageConfiguration = onMessageConfiguration;
+    }
+
+    @Override
+    public void setOnConnect(Function<ClientSocket, Void> onConnect) {
+        this.onConnect = onConnect;
+    }
+
+    @Override
+    public void setOnDisconnect(Function<ClientSocket, Void> onDisconnect) {
+        this.onDisconnect = onDisconnect;
+    }
+
+    @Override
+    public void setOnError(Function<ClientSocket, Void> onError) {
+        this.onError = onError;
+    }
 }
