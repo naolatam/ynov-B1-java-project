@@ -190,7 +190,7 @@ public class MainPanel extends JPanel {
         }
         try {
             selectedClient.sendMessage("CLIENT close connection", false);
-            selectedClient.close();
+            mainFrame.closeSocket(selectedClient);
             loadConversation();
         } catch (IOException ex) {
             ErrorFrame.showError("Unable to close connection. Error: " + ex.getMessage());
