@@ -196,6 +196,15 @@ public class MainPanel extends JPanel {
         updateUIState();
     }
 
+    public void disconnectSocket(ClientSocket client) {
+        ConfigurationMessage cMsg = new ConfigurationMessage("SERVER disconnect", Origin.SERVER, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
+        client.addMessage(cMsg);
+        updateClient(client);
+        if (client == clientList.getSelectedValue()) {
+            addMessageAndUpdateUI(cMsg.getContent(), false);
+        }
+    }
+
     private void deleteSocket(ActionEvent e) {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
@@ -226,7 +235,7 @@ public class MainPanel extends JPanel {
             try {
                 client.close();
             } catch (IOException e) {
-                if(!client.isClosed()) {
+                if (!client.isClosed()) {
                     System.err.println("Failed to close socket: " + e.getMessage());
                 }
             }

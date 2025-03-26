@@ -197,10 +197,10 @@ public class MainPanel extends JPanel {
     public void disconnectSocket(CustomSocket client) {
         ConfigurationMessage closeMsg = new ConfigurationMessage("CLIENT disconnected", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
         client.addMessage(closeMsg);
-        client.sendMessage(closeMsg);
-        updateUIState();
         updateClient(client);
-        addMessageAndUpdateUI(closeMsg.getContent(), false);
+        if (client == clientList.getSelectedValue()) {
+            addMessageAndUpdateUI(closeMsg.getContent(), false);
+        }
     }
 
     private void deleteSocket(ActionEvent e) {

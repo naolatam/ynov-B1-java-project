@@ -97,6 +97,11 @@ public class ClientSocket extends Socket implements EventInterface {
                 this.messages.add(msg);
                 onMessage(this, msg);
             }
+            if(in.readLine() == null) {
+                this.close();
+                onDisconnect(this);
+                throw new IOException("Socket Closed");
+            }
         } catch (IOException e) {
             if (!this.isClosed()) {
                 System.err.println("Socket exception, maybe unable to read input stream: " + e.getMessage());

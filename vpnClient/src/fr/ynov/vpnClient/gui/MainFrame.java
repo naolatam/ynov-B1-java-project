@@ -84,8 +84,14 @@ public class MainFrame extends JFrame {
     }
 
     private void setListeners(ClientSocket s) {
+        s.setOnDisconnect(this::handleDisconnect);
         s.setOnMessage(this::handleIncomingMessage);
         s.setOnMessageConfiguration(this::handleConfigMessage);
+    }
+
+    private Void handleDisconnect(ClientSocket cs) {
+        mp.disconnectSocket(cs);
+        return null;
     }
 
     private void handleIncomingMessage(ClientSocket cs, Message msg) {
