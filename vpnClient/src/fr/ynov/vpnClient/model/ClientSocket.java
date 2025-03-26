@@ -166,15 +166,14 @@ public class ClientSocket extends Socket implements EventInterface {
                 askServerKey();
                 return;
             }
+            this.messages.add(confMessage);
             if(confMessage.getConfiguration() == SocketConfiguration.SEND_PUBLIC_KEY) {
                 this.serverKey= new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
-                this.messages.add(confMessage);
                 sendName();
             }
             if(confMessage.getConfiguration() == SocketConfiguration.SET_NAME) {
                 this.serverName = confMessage.getContent();
             }
-            this.messages.add(confMessage);
             onMessageConfiguration(this, confMessage);
         } catch (Exception e) {
             throw new RuntimeException(e);
