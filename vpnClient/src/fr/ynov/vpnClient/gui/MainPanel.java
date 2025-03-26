@@ -154,11 +154,12 @@ public class MainPanel extends JPanel {
                 chatArea.repaint();
             });
 
+        }else {
+            socketName.setText("No discuss");
+            closeButton.setEnabled(false);
+            sendButton.setEnabled(false);
+            deleteButton.setEnabled(false);
         }
-        socketName.setText("No discuss");
-        closeButton.setEnabled(false);
-        sendButton.setEnabled(false);
-        deleteButton.setEnabled(false);
     }
 
     private void sendMessage(ActionEvent e) {
