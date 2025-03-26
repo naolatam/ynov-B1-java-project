@@ -1,15 +1,16 @@
 package fr.ynov.vpnClient.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.ynov.vpnModel.model.*;
 
-
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -17,34 +18,24 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import fr.ynov.vpnModel.model.Message;
-import fr.ynov.vpnModel.model.CryptedMessage;
-import fr.ynov.vpnModel.model.ConfigurationMessage;
-import fr.ynov.vpnModel.model.MessageType;
-import fr.ynov.vpnModel.model.SocketConfiguration;
-import fr.ynov.vpnModel.model.Origin;
-
-
 
 public class ClientSocket extends Socket implements EventInterface {
 
+    private final List<Message> messages = new ArrayList<>();
+    private final UUID uuid = UUID.randomUUID();
+    private final String name;
     private SecretKey privateKey;
     private SecretKey publicKey;
     private SecretKey serverKey;
-    private List<Message> messages = new ArrayList<>();
-
     private BiConsumer<ClientSocket, Message> onMessage;
     private BiConsumer<ClientSocket, ConfigurationMessage> onMessageConfiguration;
     private Function<ClientSocket, Void> onConnect;
     private Function<ClientSocket, Void> onDisconnect;
     private Function<ClientSocket, Void> onError;
-
-    private UUID uuid = UUID.randomUUID();
-    private String name;
     private String serverName;
 
 
-    public ClientSocket(String host, int port, String name) throws Exception {
+    public ClientSocket(String host, int port, String name) throws IOException {
         connect(new InetSocketAddress(host, port), 5000);
         this.name = name;
         new Thread(this::listenMessage).start();
@@ -56,40 +47,17 @@ public class ClientSocket extends Socket implements EventInterface {
     }
 
     public void askServerKey() {
-        try {
-            String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
-            ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
-            this.messages.add(confMessage);
-            sendMessage(confMessage);
-        } catch (IOException ex) {
-            try {this.close();} catch (IOException ex1) {}
-            System.out.println(ex.getMessage());
-
-        }
+        String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
+        ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
+        this.messages.add(confMessage);
+        sendMessage(confMessage);
     }
+
     public void sendName() {
-        try {
-            ConfigurationMessage confMessage = new ConfigurationMessage(name, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.SET_NAME);
-            this.messages.add(confMessage);
-            confMessage.encrypt(this.serverKey);
-            sendMessage(confMessage);
-        } catch (IOException ex) {
-            try {this.close();} catch (IOException ex1) {}
-            System.out.println(ex.getMessage());
-
-        } catch (NoSuchPaddingException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getServerName() {
-        return this.serverName;
+        ConfigurationMessage confMessage = new ConfigurationMessage(name, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.SET_NAME);
+        this.messages.add(confMessage);
+        confMessage.encrypt(this.serverKey);
+        sendMessage(confMessage);
     }
 
     public List<Message> getMessages() {
@@ -107,15 +75,14 @@ public class ClientSocket extends Socket implements EventInterface {
             String line;
             ObjectMapper mapper = new ObjectMapper();
             while (this.isConnected() && (line = in.readLine()) != null) {
-                System.out.println("New line: " +line);
                 msg = mapper.readValue(line, Message.class);
 
-                if(msg.getType() == MessageType.CONFIG) {
+                if (msg.getType() == MessageType.CONFIG) {
                     parseConfigFromMessage((ConfigurationMessage) msg);
                     continue;
                 }
-                if(msg.isCrypted()){
-                    if(this.privateKey == null) {
+                if (msg.isCrypted()) {
+                    if (this.privateKey == null) {
                         this.messages.add(msg);
                         continue;
                     }
@@ -123,7 +90,7 @@ public class ClientSocket extends Socket implements EventInterface {
                     CryptedMessage cMsg = (CryptedMessage) msg;
                     cMsg.decrypt(this.privateKey);
 
-                    if(cMsg.getContent() == null) {
+                    if (cMsg.getContent() == null) {
                         this.askServerKey();
                     }
                 }
@@ -131,69 +98,69 @@ public class ClientSocket extends Socket implements EventInterface {
                 onMessage(this, msg);
             }
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("IO Exception: "+ e.toString());
-        } catch (NoSuchPaddingException e) {
-            throw new RuntimeException(e);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            if (!this.isClosed()) {
+                System.err.println("Socket exception, maybe unable to read input stream: " + e.getMessage());
+            }
         }
     }
 
-    public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException, NoSuchPaddingException {
+    public void sendMessage(String content, Boolean crypted) {
         Message msg = new Message(content, Origin.CLIENT, crypted, MessageType.MESSAGE);
         this.messages.add(msg);
-        if(crypted) {
+        if (crypted) {
             CryptedMessage cMsg = new CryptedMessage(content, Origin.CLIENT, true, MessageType.MESSAGE);
             cMsg.encrypt(this.serverKey);
             msg = cMsg;
         }
         sendMessage(msg);
     }
-    public void sendMessage(Message msg) throws IOException, AssertionError {
+
+    public void sendMessage(Message msg) {
         try {
             PrintWriter out = new PrintWriter(getOutputStream(), true);
-            assert msg != null;
+            if (msg == null) {
+                System.err.println("Error sending message, cannot send void message");
+                return;
+            }
             out.println(msg.getJSON());
-        } catch (IOException | AssertionError e){
-            e.printStackTrace();
-            System.out.println("IO Exception: "+ e.toString());
+        } catch (IOException e) {
+            if (!isClosed()) {
+                System.err.println("Error sending message: " + e.getMessage());
+                onError(this);
+            }
         }
     }
 
     private void parseConfigFromMessage(ConfigurationMessage confMessage) {
-        try {
-            if(confMessage.isCrypted()) {
-                confMessage.decrypt(this.privateKey);
-            }
-            if(confMessage.getContent() == null) {
-                askServerKey();
-                return;
-            }
-            this.messages.add(confMessage);
-            if(confMessage.getConfiguration() == SocketConfiguration.SEND_PUBLIC_KEY) {
-                this.serverKey= new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
-                sendName();
-            }
-            if(confMessage.getConfiguration() == SocketConfiguration.SET_NAME) {
-                this.serverName = confMessage.getContent();
-            }
-            onMessageConfiguration(this, confMessage);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (confMessage.isCrypted()) {
+            confMessage.decrypt(this.privateKey);
         }
+        if (confMessage.getContent() == null) {
+            askServerKey();
+            return;
+        }
+        this.messages.add(confMessage);
+        if (confMessage.getConfiguration() == SocketConfiguration.SEND_PUBLIC_KEY) {
+            this.serverKey = new SecretKeySpec(Base64.getDecoder().decode(confMessage.getContent()), "AES");
+            sendName();
+        }
+        if (confMessage.getConfiguration() == SocketConfiguration.SET_NAME) {
+            this.serverName = confMessage.getContent();
+        }
+        onMessageConfiguration(this, confMessage);
+
     }
 
     @Override
     public String toString() {
 
         String res = "";
-        if(serverName == null) {
+        if (serverName == null) {
             res += uuid.toString();
-        }else {
+        } else {
             res += serverName;
         }
-        if(this.isClosed()) {
+        if (this.isClosed()) {
             res += " (closed)";
         }
         return res;
@@ -201,35 +168,35 @@ public class ClientSocket extends Socket implements EventInterface {
 
     @Override
     public void onMessage(ClientSocket socket, Message message) {
-        if(onMessage != null) {
+        if (onMessage != null) {
             onMessage.accept(socket, message);
         }
     }
 
     @Override
     public void onMessageConfiguration(ClientSocket socket, ConfigurationMessage message) {
-        if(onMessageConfiguration != null) {
+        if (onMessageConfiguration != null) {
             onMessageConfiguration.accept(socket, message);
         }
     }
 
     @Override
     public void onConnect(ClientSocket socket) {
-        if(onConnect != null) {
+        if (onConnect != null) {
             onConnect.apply(socket);
         }
     }
 
     @Override
     public void onDisconnect(ClientSocket socket) {
-        if(onDisconnect != null) {
+        if (onDisconnect != null) {
             onDisconnect.apply(socket);
         }
     }
 
     @Override
     public void onError(ClientSocket socket) {
-        if(onError != null) {
+        if (onError != null) {
             onError.apply(socket);
         }
     }

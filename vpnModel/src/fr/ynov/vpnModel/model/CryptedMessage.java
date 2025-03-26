@@ -25,7 +25,7 @@ public class CryptedMessage extends Message implements EncryptDecryptInterface {
         return mapper.writeValueAsString(this);
     }
 
-    public String decrypt(SecretKey privateKey) throws Exception {
+    public String decrypt(SecretKey privateKey) {
             if(isCrypted()) {
                 String newContent = this.decrypt(privateKey, this.getContent());
                 this.setContent(newContent);
@@ -35,7 +35,7 @@ public class CryptedMessage extends Message implements EncryptDecryptInterface {
             return null;
     }
 
-    public String encrypt(SecretKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException {
+    public String encrypt(SecretKey privateKey)  {
         String newContent = this.encrypt(privateKey, this.getContent());
         this.setContent(newContent);
         this.crypted = true;

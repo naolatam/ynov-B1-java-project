@@ -15,14 +15,17 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.concurrent.ExecutionException;
 
 
 public class LoginPanel extends JPanel {
 
-    private JTextField txtHost, txtKey, txtName;
-    private JSpinner spPort;
-    private JButton btnConnect;
     private final MainFrame mf;
+    private final JTextField txtHost;
+    private final JTextField txtKey;
+    private final JTextField txtName;
+    private final JSpinner spPort;
+    private final JButton btnConnect;
 
 
     public LoginPanel(MainFrame parent) {
@@ -36,13 +39,11 @@ public class LoginPanel extends JPanel {
         gbc.gridy = 0;
         gbc.gridwidth = 2;
 
-        JLabel title = new JLabel("Server Login");
-        title.setFont(new Font("Arial", Font.BOLD, 24));
-        title.setForeground(StyleSet.titleTextColor);
-        add(title, gbc);
+        addTitle(gbc);
 
         gbc.gridwidth = 1;
         gbc.gridy++;
+
         JLabel lblHost = new JLabel("FQDN/IP:");
         lblHost.setForeground(StyleSet.labelTextColor);
         add(lblHost, gbc);
@@ -119,8 +120,7 @@ public class LoginPanel extends JPanel {
     }
 
     private void connectToServer(ActionEvent e) {
-        SwingUtilities.invokeLater(() ->  btnConnect.setText("Connecting..."));
-        SwingUtilities.invokeLater(() ->  btnConnect.setEnabled(false));
+        setButtonState(false, "Connectiong...");
 
         String fqdn = txtHost.getText();
         int port = Integer.parseInt(spPort.getValue().toString());
@@ -128,20 +128,18 @@ public class LoginPanel extends JPanel {
         new SwingWorker<Integer, Void>() {
             @Override
             protected Integer doInBackground() {
-                if(!Utils.isValidFQDNorIP(fqdn)) {
+                if (!Utils.isValidFQDNorIP(fqdn)) {
                     ErrorFrame.showError("Invalid FQDN/IP");
                     return -2;
                 }
                 try {
-                    ClientSocket socket = new ClientSocket(fqdn, port, txtName.getText() );
+                    ClientSocket socket = new ClientSocket(fqdn, port, txtName.getText());
                     socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
                     socket.askServerKey();
                     mf.addSocket(socket);
                     return 0; // Succès
-                } catch (IOException | InterruptedException ex) {
+                } catch (IOException ex) {
                     return -1; // Échec
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
                 }
             }
 
@@ -149,20 +147,36 @@ public class LoginPanel extends JPanel {
             protected void done() {
                 try {
                     Integer success = get();
-                    if (success==0) {
+
+                    if (success == 0) {
                         SuccessFrame.showSuccess("Client socket connected: " + fqdn + ":" + port);
                         mf.showMainPanel();
-                    } else if(success==-1) {
+                    } else if (success == -1) {
                         ErrorFrame.showError("Unable to connect to " + fqdn + ":" + port + "!");
                     }
-                } catch (Exception ex) {
-                    ErrorFrame.showError("Unexcepted error : " + ex.getMessage());
+                } catch (InterruptedException | ExecutionException e) {
+                    ErrorFrame.showError("An error occure: " + e.getMessage());
+
                 }
-                SwingUtilities.invokeLater(() ->  btnConnect.setText("Connect"));
-                SwingUtilities.invokeLater(() ->  btnConnect.setEnabled(true));
+                setButtonState(true, "Connect");
+
             }
         }.execute();
 
+    }
+
+    private void addTitle(GridBagConstraints gbc) {
+        JLabel title = new JLabel("Connect to server");
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setForeground(StyleSet.titleTextColor);
+        add(title, gbc);
+    }
+
+    private void setButtonState(boolean isEnabled, String text) {
+        SwingUtilities.invokeLater(() -> {
+            btnConnect.setText(text);
+            btnConnect.setEnabled(isEnabled);
+        });
     }
 
     private SecretKey generateKey() {
@@ -178,5 +192,6 @@ public class LoginPanel extends JPanel {
             System.out.println(ex.getMessage());
         }
         return null;
-    };
+    }
+
 }

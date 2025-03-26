@@ -7,24 +7,28 @@ import fr.ynov.vpnModel.model.Message;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainFrame extends JFrame {
+    private static final String LOGIN_PANEL = "login";
+    private static final String MAIN_PANEL = "main";
+
+
     private final LoginPanel lp = new LoginPanel(this);
     private final MainPanel mp = new MainPanel(this);
     private final String title;
     private CardLayout cl;
     private JPanel mainPanel;
 
-    private List<ClientSocket> csList = new ArrayList<>();
+    private final List<ClientSocket> csList = new ArrayList<>();
 
-    public MainFrame()  {
+    public MainFrame() {
         super();
         this.title = "VPN Client";
         init();
     }
+
     public MainFrame(String title) {
         super(title);
         this.title = title;
@@ -39,25 +43,28 @@ public class MainFrame extends JFrame {
         mainPanel = new JPanel(cl);
 
         setSize(800, 600);
+        setResizable(true);
+        setMinimumSize(new Dimension(600, 400)); // Prevents UI breaking
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        if(csList.isEmpty()) {
-            showLoginPanel();
-        }
-        mainPanel.add(lp, "login");
-        mainPanel.add(mp, "main");
+        mainPanel.add(lp, LOGIN_PANEL);
+        mainPanel.add(mp, MAIN_PANEL);
         add(mainPanel);
+
+        showLoginPanel();
     }
 
     public void showLoginPanel() {
         setTitle("Login");
-        cl.show(mainPanel, "login");
+        cl.show(mainPanel, LOGIN_PANEL);
     }
+
     public void showMainPanel() {
         setTitle(title);
-        cl.show(mainPanel,"main");
+        cl.show(mainPanel, MAIN_PANEL);
     }
+
     public void addSocket(ClientSocket cs) {
         mp.addClient(cs);
         this.csList.add(cs);
@@ -66,24 +73,27 @@ public class MainFrame extends JFrame {
 
     public void closeSocket(ClientSocket cs) {
         try {
-            this.csList.remove(cs);
             cs.close();
         } catch (IOException e) {
-            this.csList.add(cs);
+            if (cs.isClosed()) return;
+            System.err.println("Failed to close socket: " + e.getMessage());
+        } finally {
+            this.csList.remove(cs);
+
         }
     }
 
     private void setListeners(ClientSocket s) {
+        s.setOnMessage(this::handleIncomingMessage);
+        s.setOnMessageConfiguration(this::handleConfigMessage);
+    }
 
-        s.setOnMessage((ClientSocket cs, Message msg) -> {
-            System.out.println("From: " + cs.toString() + ", Message: " + msg.getContent());
-            mp.receiveMessage(cs, msg);
-        });
+    private void handleIncomingMessage(ClientSocket cs, Message msg) {
+        mp.receiveMessage(cs, msg);
+    }
 
-        s.setOnMessageConfiguration((ClientSocket cs, ConfigurationMessage confMessage) -> {
-            System.out.println("From: " + cs.toString() + ", Message: " + confMessage.getContent());
-            mp.updateClient(cs);
-        });
+    private void handleConfigMessage(ClientSocket cs, ConfigurationMessage confMessage) {
+        mp.updateClient(cs);
     }
 
 }

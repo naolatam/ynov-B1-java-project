@@ -31,7 +31,7 @@ public class ConfigurationMessage extends Message implements EncryptDecryptInter
         return configuration;
     }
 
-    public String decrypt(SecretKey privateKey) throws Exception {
+    public String decrypt(SecretKey privateKey) {
         if(isCrypted()) {
             String newContent = this.decrypt(privateKey, this.getContent());
             this.setContent(newContent);
@@ -40,7 +40,7 @@ public class ConfigurationMessage extends Message implements EncryptDecryptInter
         }
         return null;
     }
-    public String encrypt(SecretKey privateKey) throws NoSuchPaddingException, NoSuchAlgorithmException {
+    public String encrypt(SecretKey privateKey)  {
         String newContent = this.encrypt(privateKey, this.getContent());
         this.setContent(newContent);
         this.crypted = true;

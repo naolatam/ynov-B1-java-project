@@ -173,20 +173,11 @@ public class MainPanel extends JPanel {
         if (!messageField.getText().trim().isEmpty()) {
             String message = messageField.getText().trim();
 
-            try {
-                selectedClient.sendMessage(message, true);
+            selectedClient.sendMessage(message, true);
 
-                chatArea.add(Utils.createMessageLabel(message, true));
-                chatArea.revalidate();
-                chatArea.repaint();
-
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Impossible d'envoyer le message", "Erreur", JOptionPane.ERROR_MESSAGE);
-            } catch (NoSuchAlgorithmException ex) {
-                throw new RuntimeException(ex);
-            } catch (NoSuchPaddingException ex) {
-                throw new RuntimeException(ex);
-            }
+            chatArea.add(Utils.createMessageLabel(message, true));
+            chatArea.revalidate();
+            chatArea.repaint();
 
             messageField.setText("");
             messageField.grabFocus();
@@ -196,30 +187,27 @@ public class MainPanel extends JPanel {
     private void closeSocket(ActionEvent e) {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
-            ErrorFrame.showError("Unable to close connection. This socket is undefined.");
+            ErrorFrame.showError("Unable to close connection. No socket selected.");
             return;
         }
-        try {
-            ConfigurationMessage cMsg = new ConfigurationMessage("CLIENT close the connection", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
-            selectedClient.addMessage(cMsg);
-            chatArea.add(Utils.createMessageLabel(cMsg.getContent(), true));
-            selectedClient.sendMessage(cMsg);
+        ConfigurationMessage cMsg = new ConfigurationMessage("CLIENT close the connection", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
+        selectedClient.addMessage(cMsg);
+        selectedClient.sendMessage(cMsg);
+        chatArea.add(Utils.createMessageLabel(cMsg.getContent(), true));
 
-            mainFrame.closeSocket(selectedClient);
-            updateClient(selectedClient);
-            updateLiveComponent();
-        } catch (IOException ex) {
-            ErrorFrame.showError("Unable to close connection. Error: " + ex.getMessage());
-        }
+        mainFrame.closeSocket(selectedClient);
+        updateClient(selectedClient);
+        updateLiveComponent();
     }
 
     private void deleteSocket(ActionEvent e) {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
-            ErrorFrame.showError("Unable to close connection. This socket is undefined.");
+            ErrorFrame.showError("Unable to close connection. No socket selected.");
+            return;
         }
         clientListModel.removeElement(selectedClient);
-        loadConversation();
+        updateLiveComponent();
     }
 
     public void addClient(ClientSocket socket) {
@@ -231,17 +219,19 @@ public class MainPanel extends JPanel {
     public void updateClient(ClientSocket socket) {
         int index = clientListModel.indexOf(socket);
         if (index != -1) {
-            clientListModel.set(index, socket); // Force UI refresh
+            clientListModel.setElementAt(socket, index); // Force UI refresh
         }
     }
 
     public void receiveMessage(ClientSocket client, Message message) {
         if (message.isCrypted()) message.setContent("Unable to decrypt this message");
         if(message.getType() == MessageType.CLOSE) {
-            try {
-                client.close();
-            } catch (IOException e) {
-                try{Thread.sleep(200);} catch (InterruptedException ex) {}
+            if(client.isClosed()) {
+                try {
+                    client.close();
+                } catch (IOException e) {
+                    Utils.sleep(200);
+                }
             }
             updateClient(client);
             updateLiveComponent();

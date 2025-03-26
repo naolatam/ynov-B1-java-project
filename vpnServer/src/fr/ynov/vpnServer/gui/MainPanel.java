@@ -100,7 +100,7 @@ public class MainPanel extends JPanel {
                 sendButton.setEnabled(false);
                 closeButton.setEnabled(false);
             }
-        }else {
+        } else {
             socketName.setText("No discuss");
             deleteButton.setEnabled(false);
             sendButton.setEnabled(false);
@@ -187,13 +187,15 @@ public class MainPanel extends JPanel {
             ErrorFrame.showError("Unable to send message. Error: " + ex.getMessage());
         }
     }
+
     private void deleteSocket(ActionEvent e) {
         CustomSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
-            ErrorFrame.showError("Unable to delete this. This socket is undefined.");
+            ErrorFrame.showError("Unable to delete this. No socket selected.");
             return;
         }
         clientListModel.removeElement(selectedClient);
+        updateLiveComponent();
     }
 
     public void addClient(CustomSocket socket) {
@@ -205,18 +207,18 @@ public class MainPanel extends JPanel {
     public void updateClient(CustomSocket socket) {
         int index = clientListModel.indexOf(socket);
         if (index != -1) {
-            clientListModel.set(index, socket); // Force UI refresh
+            clientListModel.setElementAt(socket, index); // Force UI refresh
         }
     }
 
     public void receiveMessage(CustomSocket client, Message message) {
         if (message.isCrypted()) message.setContent("Unable to decrypt this message");
-        if(message.getType() == MessageType.CLOSE) {
-            if(!client.getSocket().isClosed()) {
+        if (message.getType() == MessageType.CLOSE) {
+            if (!client.getSocket().isClosed()) {
                 try {
                     client.getSocket().close();
                 } catch (IOException e) {
-                    try {Thread.sleep(200);} catch (InterruptedException ie) {}
+                    Utils.sleep(200);
                 }
             }
             updateLiveComponent();
@@ -229,7 +231,6 @@ public class MainPanel extends JPanel {
 
         }
     }
-
 
 
 }

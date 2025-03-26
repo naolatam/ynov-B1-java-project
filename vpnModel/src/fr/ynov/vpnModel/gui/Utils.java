@@ -26,5 +26,12 @@ public class Utils {
 
         return messageLabel;
     }
+    public static void sleep(int milis) {
+        try {
+            Thread.sleep(milis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
 }
