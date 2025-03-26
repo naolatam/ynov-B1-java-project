@@ -13,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 
 import fr.ynov.vpnModel.model.Message;
 import fr.ynov.vpnModel.model.CryptedMessage;
@@ -30,8 +31,9 @@ public class ClientSocket extends Socket {
     private SecretKey serverKey;
     private List<Message> messages = new ArrayList<>();
 
+    private UUID uuid = UUID.randomUUID();
     private String name;
-    private String ServerName;
+    private String serverName;
 
 
     public ClientSocket(String host, int port, String name) throws Exception {
@@ -70,6 +72,18 @@ public class ClientSocket extends Socket {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getServerName() {
+        return this.serverName;
+    }
+
+    public List<Message> getMessages() {
+        return this.messages;
     }
 
     private void listenMessage() {
@@ -142,7 +156,9 @@ public class ClientSocket extends Socket {
 
     private void parseConfigFromMessage(ConfigurationMessage confMessage) {
         try {
-            confMessage.decrypt(this.privateKey);
+            if(confMessage.isCrypted()) {
+                confMessage.decrypt(this.privateKey);
+            }
             if(confMessage.getContent() == null) {
                 askServerKey();
                 return;
@@ -153,11 +169,20 @@ public class ClientSocket extends Socket {
                 sendName();
             }
             if(confMessage.getConfiguration() == SocketConfiguration.SET_NAME) {
-                this.name = confMessage.getContent();
+                this.serverName = confMessage.getContent();
             }
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public String toString() {
+        if(serverName == null) {
+            return uuid.toString();
+        }
+        return serverName;
+    }
+
 }
