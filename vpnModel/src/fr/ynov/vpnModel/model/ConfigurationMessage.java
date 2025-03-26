@@ -16,8 +16,8 @@ public class ConfigurationMessage extends Message implements EncryptDecryptInter
 
     public ConfigurationMessage() {}
 
-    public ConfigurationMessage(String content, Origin origin, boolean crypted, MessageType event, SocketConfiguration configuration) {
-        super(content, origin, crypted,event);
+    public ConfigurationMessage(String content, Origin origin, boolean crypted, MessageType type, SocketConfiguration configuration) {
+        super(content, origin, crypted,type);
         this.configuration = configuration;
     }
     @Override
