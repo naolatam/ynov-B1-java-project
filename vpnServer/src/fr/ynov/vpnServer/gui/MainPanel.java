@@ -21,64 +21,50 @@ public class MainPanel extends JPanel {
     private final JLabel socketName;
     private final JButton sendButton, closeButton, deleteButton;
 
-
     public MainPanel() {
         setLayout(new BorderLayout());
 
-        // Liste des clients connectés
         clientListModel = new DefaultListModel<>();
-        clientList = new JList<>(clientListModel);
-        clientList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        clientList.addListSelectionListener(e -> loadConversation());
-        clientList.setBackground(StyleSet.backgroundColor);
-        clientList.setForeground(StyleSet.labelTextColor);
+        clientList = initializeClientList();
+        chatArea = initializeChatArea();
+        messageField = new JTextField();
+        sendButton = createStyledButton("Send", this::sendMessage, false);
+        closeButton = createStyledButton("Close", this::closeSocket, false);
+        deleteButton = createStyledButton("Delete", this::deleteSocket, false);
+        deleteButton.setBackground(StyleSet.deleteButtonBackground);
+
+        socketName = new JLabel("No discuss");
+        socketName.setForeground(StyleSet.titleTextColor);
+
+        addComponents();
+    }
+
+    private JList<CustomSocket> initializeClientList() {
+        JList<CustomSocket> list = new JList<>(clientListModel);
+        list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        list.addListSelectionListener(e -> loadConversation());
+        list.setBackground(StyleSet.backgroundColor);
+        list.setForeground(StyleSet.labelTextColor);
+        return list;
+    }
+
+    private JPanel initializeChatArea() {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(StyleSet.backgroundColor);
+        panel.setForeground(StyleSet.titleTextColor);
+        return panel;
+    }
+
+    private void addComponents() {
         JScrollPane listScroll = new JScrollPane(clientList);
         listScroll.setPreferredSize(new Dimension(200, 0));
 
-        // Zone de chat
-        chatArea = new JPanel();
-        chatArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        chatArea.setLayout(new BoxLayout(chatArea, BoxLayout.Y_AXIS));
-        chatArea.setBackground(StyleSet.backgroundColor);
-        chatArea.setForeground(StyleSet.titleTextColor);
         JScrollPane chatScroll = new JScrollPane(chatArea);
 
-        // Champ de saisie et bouton envoyer
-        JPanel inputPanel = new JPanel(new BorderLayout());
-        messageField = new JTextField();
-        sendButton = new JButton("Send");
+        JPanel inputPanel = initializeInputPanel();
+        JPanel infoPanel = initializeInfoPanel();
 
-        messageField.setBackground(StyleSet.backgroundColor);
-        messageField.setForeground(StyleSet.labelTextColor);
-        inputPanel.setBackground(StyleSet.backgroundColor);
-        sendButton.setEnabled(false);
-        StyleSet.styleButton(sendButton);
-        sendButton.addActionListener(this::sendMessage);
-
-        inputPanel.add(messageField, BorderLayout.CENTER);
-        inputPanel.add(sendButton, BorderLayout.EAST);
-
-        JPanel infoPanel = new JPanel(new BorderLayout());
-        socketName = new JLabel("No discuss");
-        closeButton = new JButton("Close");
-        deleteButton = new JButton("Delete");
-
-        infoPanel.setBackground(StyleSet.backgroundColor);
-        socketName.setForeground(StyleSet.titleTextColor);
-        closeButton.setEnabled(false);
-        deleteButton.setEnabled(false);
-        StyleSet.styleButton(closeButton);
-        StyleSet.styleButton(deleteButton);
-        deleteButton.setBackground(StyleSet.deleteButtonBackground);
-        closeButton.addActionListener(this::closeSocket);
-        deleteButton.addActionListener(this::deleteSocket);
-
-        infoPanel.add(socketName, BorderLayout.CENTER);
-        infoPanel.add(closeButton, BorderLayout.EAST);
-        infoPanel.add(deleteButton, BorderLayout.WEST);
-
-
-        // Séparateur entre la liste des clients et le chat
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, listScroll, chatScroll);
         splitPane.setDividerLocation(200);
         splitPane.setResizeWeight(0.3);
@@ -88,114 +74,135 @@ public class MainPanel extends JPanel {
         add(infoPanel, BorderLayout.NORTH);
     }
 
-    private void updateLiveComponent() {
+    private JPanel initializeInputPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(StyleSet.backgroundColor);
+        messageField.setBackground(StyleSet.backgroundColor);
+        messageField.setForeground(StyleSet.labelTextColor);
+
+        panel.add(messageField, BorderLayout.CENTER);
+        panel.add(sendButton, BorderLayout.EAST);
+        return panel;
+    }
+
+    private JPanel initializeInfoPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBackground(StyleSet.backgroundColor);
+
+        panel.add(socketName, BorderLayout.CENTER);
+        panel.add(closeButton, BorderLayout.EAST);
+        panel.add(deleteButton, BorderLayout.WEST);
+
+        return panel;
+    }
+
+    private JButton createStyledButton(String text, java.awt.event.ActionListener action, boolean enabled) {
+        JButton button = new JButton(text);
+        button.setEnabled(enabled);
+        StyleSet.styleButton(button);
+        button.addActionListener(action);
+        return button;
+    }
+
+    private void updateUIState() {
         CustomSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
-            socketName.setText("Discuss: " + selectedClient);
-            closeButton.setEnabled(true);
-            sendButton.setEnabled(true);
-            deleteButton.setEnabled(false);
-            if (selectedClient.getSocket().isClosed()) {
-                deleteButton.setEnabled(true);
-                sendButton.setEnabled(false);
-                closeButton.setEnabled(false);
-            }
+            socketName.setText("Discussion: " + selectedClient);
+            boolean isSocketClosed = selectedClient.getSocket().isClosed();
+            sendButton.setEnabled(!isSocketClosed);
+            closeButton.setEnabled(!isSocketClosed);
+            deleteButton.setEnabled(isSocketClosed);
         } else {
-            socketName.setText("No discuss");
-            deleteButton.setEnabled(false);
-            sendButton.setEnabled(false);
-            closeButton.setEnabled(false);
+            resetUIState();
         }
     }
 
+    private void resetUIState() {
+        socketName.setText("No discuss");
+        sendButton.setEnabled(false);
+        closeButton.setEnabled(false);
+        deleteButton.setEnabled(false);
+    }
 
     private void loadConversation() {
         chatArea.removeAll();
+        updateUIState();
+
+        CustomSocket selectedClient = clientList.getSelectedValue();
+        if (selectedClient != null) {
+            selectedClient.getMessages().forEach(this::updateChatUI);
+        }
+
         chatArea.revalidate();
         chatArea.repaint();
-        CustomSocket selectedClient = clientList.getSelectedValue();
-        updateLiveComponent();
-        if (selectedClient != null) {
-            selectedClient.getMessages().forEach(message -> {
-                if (message.getType() == MessageType.CONFIG) {
-                    switch (((ConfigurationMessage) message).getConfiguration()) {
-                        case SET_NAME -> chatArea.add(
-                                Utils.createConfigMessageLabel(
-                                        message.getOrigin().name()
-                                                + " send his name: "
-                                                + message.getContent()
-                                ));
-                        case GET_PUBLIC_KEY, SEND_PUBLIC_KEY -> chatArea.add(
-                                Utils.createConfigMessageLabel(
-                                        message.getOrigin().name()
-                                                + " send his key"
-                                )
-                        );
-                    }
-                    return;
-                }
-                boolean isSent = message.getOrigin() == Origin.SERVER;
-                chatArea.add(Utils.createMessageLabel(message.getContent(), isSent));
-                chatArea.revalidate();
-                chatArea.repaint();
-            });
+    }
 
+    private void updateChatUI(Message message) {
+        if (message.getType() == MessageType.CONFIG) {
+            handleConfigMessage(message);
+        } else {
+            chatArea.add(Utils.createMessageLabel(message.getContent(), message.getOrigin() == Origin.SERVER));
+        }
+    }
+
+    private void handleConfigMessage(Message message) {
+        ConfigurationMessage configMsg = (ConfigurationMessage) message;
+        switch (configMsg.getConfiguration()) {
+            case SET_NAME ->
+                    chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " set name: " + message.getContent()));
+            case GET_PUBLIC_KEY, SEND_PUBLIC_KEY ->
+                    chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " sent a key"));
         }
     }
 
     private void sendMessage(ActionEvent e) {
         CustomSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null || selectedClient.getSocket().isClosed()) {
-            ErrorFrame.showError("Unable to send message. This socket is disconnected.");
+            ErrorFrame.showError("Cannot send message. The socket is disconnected.");
             return;
         }
-        if (!messageField.getText().trim().isEmpty()) {
-            String message = messageField.getText().trim();
 
+        String message = messageField.getText().trim();
+        if (!message.isEmpty()) {
             try {
                 selectedClient.sendMessage(message, true);
-
                 chatArea.add(Utils.createMessageLabel(message, true));
-                chatArea.revalidate();
-                chatArea.repaint();
-
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Impossible d'envoyer le message", "Erreur", JOptionPane.ERROR_MESSAGE);
-            } catch (NoSuchAlgorithmException | NoSuchPaddingException ex) {
-                throw new RuntimeException(ex);
+            } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException ex) {
+                ErrorFrame.showError("Failed to send message: " + ex.getMessage());
             }
 
             messageField.setText("");
-            messageField.grabFocus();
+            messageField.requestFocus();
         }
     }
 
     private void closeSocket(ActionEvent e) {
         CustomSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
-            ErrorFrame.showError("Unable to send message. This socket is undefined.");
+            ErrorFrame.showError("No socket selected.");
             return;
         }
+
         try {
-            ConfigurationMessage cMsg = new ConfigurationMessage("SERVER close the connection", Origin.SERVER, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
-            selectedClient.addMessage(cMsg);
-            chatArea.add(Utils.createMessageLabel(cMsg.getContent(), true));
-            selectedClient.sendMessage(cMsg);
+            ConfigurationMessage closeMsg = new ConfigurationMessage("SERVER closed the connection", Origin.SERVER, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
+            selectedClient.addMessage(closeMsg);
+            selectedClient.sendMessage(closeMsg);
             selectedClient.getSocket().close();
             updateClient(selectedClient);
         } catch (IOException ex) {
-            ErrorFrame.showError("Unable to send message. Error: " + ex.getMessage());
+            ErrorFrame.showError("Error closing socket: " + ex.getMessage());
         }
     }
 
     private void deleteSocket(ActionEvent e) {
         CustomSocket selectedClient = clientList.getSelectedValue();
-        if (selectedClient == null) {
-            ErrorFrame.showError("Unable to delete this. No socket selected.");
-            return;
+        if (selectedClient != null) {
+            clientListModel.removeElement(selectedClient);
+            updateUIState();
+            chatArea.removeAll();
+            chatArea.revalidate();
+            chatArea.repaint();
         }
-        clientListModel.removeElement(selectedClient);
-        updateLiveComponent();
     }
 
     public void addClient(CustomSocket socket) {
@@ -207,30 +214,28 @@ public class MainPanel extends JPanel {
     public void updateClient(CustomSocket socket) {
         int index = clientListModel.indexOf(socket);
         if (index != -1) {
-            clientListModel.setElementAt(socket, index); // Force UI refresh
+            clientListModel.setElementAt(socket, index);
         }
     }
 
     public void receiveMessage(CustomSocket client, Message message) {
-        if (message.isCrypted()) message.setContent("Unable to decrypt this message");
-        if (message.getType() == MessageType.CLOSE) {
-            if (!client.getSocket().isClosed()) {
-                try {
-                    client.getSocket().close();
-                } catch (IOException e) {
-                    Utils.sleep(200);
-                }
-            }
-            updateLiveComponent();
-            updateClient(client);
+        if (message.isCrypted()) {
+            message.setContent("Cannot decrypt this message");
         }
+
+        if (message.getType() == MessageType.CLOSE && !client.getSocket().isClosed()) {
+            try {
+                client.getSocket().close();
+            } catch (IOException ignored) {
+            }
+        }
+
+        updateUIState();
+
         if (clientList.getSelectedValue() == client) {
             chatArea.add(Utils.createMessageLabel(message.getContent(), false));
             chatArea.revalidate();
             chatArea.repaint();
-
         }
     }
-
-
 }

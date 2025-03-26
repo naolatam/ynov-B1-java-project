@@ -6,12 +6,10 @@ import fr.ynov.vpnModel.gui.StyleSet;
 import fr.ynov.vpnModel.gui.Utils;
 import fr.ynov.vpnModel.model.*;
 
-import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 
 public class MainPanel extends JPanel {
     private final DefaultListModel<ClientSocket> clientListModel;
@@ -111,7 +109,7 @@ public class MainPanel extends JPanel {
         this.mainFrame.showLoginPanel();
     }
 
-    private void updateLiveComponent() {
+    private void updateUIState() {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
             socketName.setText("Discuss: " + selectedClient);
@@ -134,7 +132,7 @@ public class MainPanel extends JPanel {
     private void loadConversation() {
         chatArea.removeAll();
         ClientSocket selectedClient = clientList.getSelectedValue();
-        updateLiveComponent();
+        updateUIState();
         if (selectedClient != null) {
 
             selectedClient.getMessages().forEach(message -> {
@@ -197,7 +195,7 @@ public class MainPanel extends JPanel {
 
         mainFrame.closeSocket(selectedClient);
         updateClient(selectedClient);
-        updateLiveComponent();
+        updateUIState();
     }
 
     private void deleteSocket(ActionEvent e) {
@@ -207,7 +205,7 @@ public class MainPanel extends JPanel {
             return;
         }
         clientListModel.removeElement(selectedClient);
-        updateLiveComponent();
+        updateUIState();
     }
 
     public void addClient(ClientSocket socket) {
@@ -234,7 +232,7 @@ public class MainPanel extends JPanel {
                 }
             }
             updateClient(client);
-            updateLiveComponent();
+            updateUIState();
         }
         if (clientList.getSelectedValue() == client) {
             chatArea.add(Utils.createMessageLabel(message.getContent(), false));

@@ -8,15 +8,15 @@ import fr.ynov.vpnServer.model.CustomSocket;
 import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.Objects;
 
-public class MainFrame  extends JFrame {
-    private CustomServerSocket ss = null;
+public class MainFrame extends JFrame {
+
+    private final String SETUP_PANEL = "setup";
+    private final String MAIN_PANEL = "main";
     private final SetupPanel sp = new SetupPanel(this);
     private final MainPanel mp = new MainPanel();
-
     private final String title;
+    private CustomServerSocket ss = null;
     private CardLayout cl;
     private JPanel mainPanel;
 
@@ -26,6 +26,7 @@ public class MainFrame  extends JFrame {
         setTitle(title);
         init();
     }
+
     public MainFrame(String title) {
         super(title);
         this.title = title;
@@ -43,29 +44,24 @@ public class MainFrame  extends JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        if(ss == null) {
-            showSetupPanel();
-        }else {
-            showMainPanel();
-        }
-
-        mainPanel.add(sp, "sp");
-        mainPanel.add(mp, "main");
+        mainPanel.add(sp, SETUP_PANEL);
+        mainPanel.add(mp, MAIN_PANEL);
 
         add(mainPanel);
+
+        showSetupPanel();
     }
 
     private void showSetupPanel() {
-        cl.show(mainPanel, "sp");
+        cl.show(mainPanel, SETUP_PANEL);
     }
+
     public void showMainPanel() {
-        cl.show(mainPanel, "main");
-
-
+        cl.show(mainPanel, MAIN_PANEL);
     }
 
     public void setServerSocket(CustomServerSocket ss) throws IOException {
-        if(this.ss != null && ss.isClosed()) {
+        if (this.ss != null && !this.ss.isClosed()) {
             this.ss.close();
         }
         this.ss = ss;
@@ -74,20 +70,22 @@ public class MainFrame  extends JFrame {
 
 
     private void setListener() {
-        this.ss.setOnConnect((CustomSocket cs) -> {
-            mp.addClient(cs);
-            return null;
-        });
+        this.ss.setOnConnect(this::handleConnection);
+        this.ss.setOnMessage(this::handleIncomingMessage);
+        this.ss.setOnMessageConfiguration(this::handleConfigurationMessage);
+    }
 
-        this.ss.setOnMessage((CustomSocket cs, Message msg) -> {
-            System.out.println("From: " + cs.toString() + ", Message: " + msg.getContent());
-            mp.receiveMessage(cs, msg);
-        });
+    private Void handleConnection(CustomSocket cs) {
+        mp.addClient(cs);
+        return null;
+    }
 
-        this.ss.setOnMessageConfiguration((CustomSocket cs, ConfigurationMessage confMessage) -> {
-            System.out.println("From: " + cs.toString() + ", Message: " + confMessage.getContent());
-            mp.updateClient(cs);
-        });
+    private void handleIncomingMessage(CustomSocket cs, Message msg) {
+        mp.receiveMessage(cs, msg);
+    }
+
+    private void handleConfigurationMessage(CustomSocket cs, ConfigurationMessage confMessage) {
+        mp.updateClient(cs);
     }
 
 }

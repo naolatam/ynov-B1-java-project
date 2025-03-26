@@ -1,9 +1,8 @@
 package fr.ynov.vpnServer.gui;
 
-import com.sun.jdi.VoidType;
 import fr.ynov.vpnModel.gui.ErrorFrame;
-import fr.ynov.vpnModel.gui.SuccessFrame;
 import fr.ynov.vpnModel.gui.StyleSet;
+import fr.ynov.vpnModel.gui.SuccessFrame;
 import fr.ynov.vpnServer.model.CustomServerSocket;
 
 import javax.crypto.KeyGenerator;
@@ -13,23 +12,22 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
-import java.util.function.Function;
 
+import static fr.ynov.vpnModel.gui.StyleSet.styleButton;
 
 public class SetupPanel extends JPanel {
 
+    private final MainFrame mf;
     private JTextField txtKey, txtName;
     private JSpinner spPort;
     private JButton btnStart;
-    private final MainFrame mf;
 
     public SetupPanel(MainFrame parent) {
         this.mf = parent;
         setLayout(new GridBagLayout());
-        setBackground(StyleSet.backgroundColor); // Dark background
+        setBackground(StyleSet.backgroundColor);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -37,21 +35,28 @@ public class SetupPanel extends JPanel {
         gbc.gridy = 0;
         gbc.gridwidth = 2;
 
+        addTitle(gbc);
+        addPortInput(gbc);
+        addKeyInput(gbc);
+        addNameInput(gbc);
+        addStartButton(gbc);
+    }
+
+    private void addTitle(GridBagConstraints gbc) {
         JLabel title = new JLabel("Server setup");
         title.setFont(new Font("Arial", Font.BOLD, 24));
         title.setForeground(StyleSet.titleTextColor);
         add(title, gbc);
 
-        gbc.gridwidth = 0;
         gbc.gridy++;
-        JLabel subTitle = new JLabel("On wich port you want to run the server socket?");
+        JLabel subTitle = new JLabel("On which port do you want to run the server socket?");
         subTitle.setFont(new Font("Arial", Font.BOLD, 16));
         subTitle.setForeground(StyleSet.titleTextColor);
         add(subTitle, gbc);
+    }
 
-
+    private void addPortInput(GridBagConstraints gbc) {
         gbc.gridwidth = 1;
-        gbc.gridx = 0;
         gbc.gridy++;
         JLabel lblPort = new JLabel("Port:");
         lblPort.setForeground(StyleSet.labelTextColor);
@@ -59,12 +64,11 @@ public class SetupPanel extends JPanel {
 
         gbc.gridx = 1;
         spPort = new JSpinner(new SpinnerNumberModel(1024, 0, 49151, 1));
-        spPort.setFont(new Font("Arial", Font.PLAIN, 14));
-        spPort.setForeground(StyleSet.inputTextColor);
-        spPort.setBackground(StyleSet.inputBackgroundColor);
-        spPort.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        styleComponent(spPort);
         add(spPort, gbc);
+    }
 
+    private void addKeyInput(GridBagConstraints gbc) {
         gbc.gridx = 0;
         gbc.gridy++;
         JLabel lblKey = new JLabel("AES Key:");
@@ -73,12 +77,13 @@ public class SetupPanel extends JPanel {
 
         gbc.gridx = 1;
         txtKey = new JTextField(15);
-        styleTextField(txtKey);
-        add(txtKey, gbc);
+        styleComponent(txtKey);
         txtKey.setEditable(false);
         txtKey.setText(Base64.getEncoder().encodeToString(generateKey().getEncoded()));
+        add(txtKey, gbc);
+    }
 
-        gbc.gridwidth = 1;
+    private void addNameInput(GridBagConstraints gbc) {
         gbc.gridx = 0;
         gbc.gridy++;
         JLabel lblName = new JLabel("Server name:");
@@ -87,90 +92,71 @@ public class SetupPanel extends JPanel {
 
         gbc.gridx = 1;
         txtName = new JTextField(15);
-        styleTextField(txtName);
+        styleComponent(txtName);
         add(txtName, gbc);
+    }
 
+    private void addStartButton(GridBagConstraints gbc) {
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
         btnStart = new JButton("Start");
         styleButton(btnStart);
-        add(btnStart, gbc);
-
         btnStart.addActionListener(this::connectToServer);
-
+        add(btnStart, gbc);
     }
 
-    private void styleButton(JButton button) {
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setForeground(StyleSet.buttonTextColor);
-        button.setBackground(StyleSet.buttonBackgroundColor); // Blue
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        button.setFocusPainted(false);
-    }
 
-    private void styleTextField(JTextField field) {
-        field.setFont(new Font("Arial", Font.PLAIN, 14));
-        field.setForeground(StyleSet.inputTextColor);
-        field.setBackground(StyleSet.inputBackgroundColor);
-        field.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    private void styleComponent(JComponent component) {
+        component.setFont(new Font("Arial", Font.PLAIN, 14));
+        component.setForeground(StyleSet.inputTextColor);
+        component.setBackground(StyleSet.inputBackgroundColor);
+        component.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 
     private void connectToServer(ActionEvent e) {
-        SwingUtilities.invokeLater(() ->  btnStart.setText("Starting..."));
-        SwingUtilities.invokeLater(() ->  btnStart.setEnabled(false));
+        btnStart.setText("Starting...");
+        btnStart.setEnabled(false);
 
-        int port = Integer.parseInt(spPort.getValue().toString());
-
-        new SwingWorker<Integer, Void>() {
+        int port = (int) spPort.getValue();
+        new SwingWorker<Boolean, Void>() {
             @Override
-            protected Integer doInBackground() {
-
+            protected Boolean doInBackground() {
                 try {
-                    CustomServerSocket socket = new CustomServerSocket( port, txtName.getText() );
+                    CustomServerSocket socket = new CustomServerSocket(port, txtName.getText());
                     socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
                     mf.setServerSocket(socket);
-                    return 0; // Succès
+                    return true;
                 } catch (IOException ex) {
-                    return -1; // Échec
-                } catch (Exception ex) {
-                    return -1;
+                    return false;
                 }
             }
 
             @Override
             protected void done() {
                 try {
-                    Integer success = get();
-                    if (success==0) {
+                    if (get()) {
                         SuccessFrame.showSuccess("Server socket started on port: " + port);
                         mf.showMainPanel();
-                    } else if(success==-1) {
-                        ErrorFrame.showError("Unable to connect using port:" +  port + "!");
+                    } else {
+                        ErrorFrame.showError("Unable to connect using port: " + port + "!");
                     }
                 } catch (Exception ex) {
-                    ErrorFrame.showError("Unexcepted error : " + ex.getMessage());
+                    ErrorFrame.showError("Unexpected error: " + ex.getMessage());
                 }
-                SwingUtilities.invokeLater(() ->  btnStart.setText("Start"));
-                SwingUtilities.invokeLater(() ->  btnStart.setEnabled(true));
+                btnStart.setText("Start");
+                btnStart.setEnabled(true);
             }
         }.execute();
-
     }
 
     private SecretKey generateKey() {
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-
-            // Initialize the KeyGenerator with a key size (128, 192, or 256 bits)
-            keyGen.init(256);  // AES supports key sizes: 128, 192, or 256 bits
-
-            // Generate the AES secret key
+            keyGen.init(256);
             return keyGen.generateKey();
         } catch (NoSuchAlgorithmException ex) {
-            System.out.println(ex.getMessage());
+            throw new RuntimeException("Error generating AES key: " + ex.getMessage(), ex);
         }
-        return null;
-    };
-
+    }
 }
