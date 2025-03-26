@@ -56,6 +56,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 pubKey, Origin.SERVER, true, MessageType.CONFIG,
                 SocketConfiguration.SEND_PUBLIC_KEY);
         socket.sendMessage(confMessage);
+        socket.addMessage(confMessage);
     }
 
     public void sendName(CustomSocket socket) throws IOException {
@@ -65,6 +66,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                     content, Origin.SERVER, true, MessageType.CONFIG,
                     SocketConfiguration.SET_NAME);
             socket.sendMessage(confMessage);
+            socket.addMessage(confMessage);
         } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {}
     }
 

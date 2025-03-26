@@ -28,7 +28,6 @@ public class CustomSocket {
     private Socket socket;
 
     private SecretKey publicKey;
-    private SecretKey serverKey;
 
     private final List<Message> messages = new ArrayList<>();
 
@@ -65,6 +64,7 @@ public class CustomSocket {
 
     public void sendMessage(String content, Boolean crypted) throws IOException, AssertionError, NoSuchAlgorithmException, NoSuchPaddingException {
         Message msg = new Message(content, Origin.SERVER, crypted, MessageType.MESSAGE);
+        this.messages.add(msg);
         if(crypted) {
             CryptedMessage cMsg = new CryptedMessage(content, Origin.SERVER, true, MessageType.MESSAGE);
             cMsg.encrypt(this.publicKey);
@@ -77,7 +77,6 @@ public class CustomSocket {
             PrintWriter output = new PrintWriter(this.socket.getOutputStream(), true);
             assert msg != null;
             output.println(msg.getJSON());
-            this.messages.add(msg);
         } catch (IOException | AssertionError e){
             e.printStackTrace();
             System.out.println("IO Exception: "+ e.toString());

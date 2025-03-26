@@ -14,8 +14,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-
 
 public class MainPanel extends JPanel {
     private final DefaultListModel<CustomSocket> clientListModel;
