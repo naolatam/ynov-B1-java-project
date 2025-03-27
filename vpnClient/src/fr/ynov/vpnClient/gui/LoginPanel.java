@@ -30,20 +30,25 @@ public class LoginPanel extends JPanel {
 
     public LoginPanel(MainFrame parent) {
         this.mf = parent;
+        // Set the layout and the background
         setLayout(new GridBagLayout());
         setBackground(StyleSet.backgroundColor); // Dark background
 
+        // Set the grid constraints
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
 
+        // Adding the title to the page
         addTitle(gbc);
 
+        // Reset the grid Width and go to the next line
         gbc.gridwidth = 1;
         gbc.gridy++;
 
+        // Creating and adding the form for login.
         JLabel lblHost = new JLabel("FQDN/IP:");
         lblHost.setForeground(StyleSet.labelTextColor);
         add(lblHost, gbc);
@@ -59,6 +64,10 @@ public class LoginPanel extends JPanel {
         lblPort.setForeground(StyleSet.labelTextColor);
         add(lblPort, gbc);
 
+
+        // Make a spinner for selecting the port on wich the server is.
+        // Minimum value is, 1024 because all port before is used for system service like http, dns, dhcp, smtp, etc...
+        // The maximum value is 49151 because it's the last port reserved for custom application.
         gbc.gridx = 1;
         spPort = new JSpinner(new SpinnerNumberModel(1024, 0, 49151, 1));
         spPort.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -79,6 +88,7 @@ public class LoginPanel extends JPanel {
         styleTextField(txtKey);
         add(txtKey, gbc);
         txtKey.setEditable(false);
+        // Generating and encoding in base64 a new key so it can be show to the user.
         txtKey.setText(Base64.getEncoder().encodeToString(generateKey().getEncoded()));
 
         gbc.gridwidth = 1;
@@ -104,37 +114,37 @@ public class LoginPanel extends JPanel {
 
     }
 
-    private void styleTextField(JTextField field) {
-        field.setFont(new Font("Arial", Font.PLAIN, 14));
-        field.setForeground(StyleSet.inputTextColor);
-        field.setBackground(StyleSet.inputBackgroundColor);
-        field.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    private void addTitle(GridBagConstraints gbc) {
+        // Creating a new Label for title
+        JLabel title = new JLabel("Connect to server");
+        title.setFont(new Font("Arial", Font.BOLD, 24));
+        title.setForeground(StyleSet.titleTextColor);
+        add(title, gbc);
     }
 
-    private void styleButton(JButton button) {
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setForeground(StyleSet.buttonTextColor);
-        button.setBackground(StyleSet.buttonBackgroundColor); // Blue
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        button.setFocusPainted(false);
-    }
-
+    // This method is called when the connect button is clicked
     private void connectToServer(ActionEvent e) {
+        // Change the label of the button and desactivate it
         setButtonState(false, "Connectiong...");
 
+        // Fetching the data from the form
         String fqdn = txtHost.getText();
         int port = Integer.parseInt(spPort.getValue().toString());
 
         new SwingWorker<Integer, Void>() {
             @Override
             protected Integer doInBackground() {
+                // Check if the fqdn is valid
                 if (!Utils.isValidFQDNorIP(fqdn)) {
                     ErrorFrame.showError("Invalid FQDN/IP");
                     return -2;
                 }
                 try {
+                    // Creating a new socket and connect to the server.
                     ClientSocket socket = new ClientSocket(fqdn, port, txtName.getText());
+                    // Parse the AES Key from the form and set it in the socket
                     socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
+                    // Send the public Key of client to the server and ask for his public key
                     socket.askServerKey();
                     mf.addSocket(socket);
                     return 0; // Succès
@@ -165,20 +175,7 @@ public class LoginPanel extends JPanel {
 
     }
 
-    private void addTitle(GridBagConstraints gbc) {
-        JLabel title = new JLabel("Connect to server");
-        title.setFont(new Font("Arial", Font.BOLD, 24));
-        title.setForeground(StyleSet.titleTextColor);
-        add(title, gbc);
-    }
-
-    private void setButtonState(boolean isEnabled, String text) {
-        SwingUtilities.invokeLater(() -> {
-            btnConnect.setText(text);
-            btnConnect.setEnabled(isEnabled);
-        });
-    }
-
+    // This method is used to generate a AES Key
     private SecretKey generateKey() {
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("AES");
@@ -192,6 +189,32 @@ public class LoginPanel extends JPanel {
             System.out.println(ex.getMessage());
         }
         return null;
+    }
+
+    // This method is used to change the state of the connect button
+    private void setButtonState(boolean isEnabled, String text) {
+        SwingUtilities.invokeLater(() -> {
+            btnConnect.setText(text);
+            btnConnect.setEnabled(isEnabled);
+        });
+    }
+
+    // Styling the button
+    private void styleButton(JButton button) {
+        button.setFont(new Font("Arial", Font.BOLD, 14));
+        button.setForeground(StyleSet.buttonTextColor);
+        button.setBackground(StyleSet.buttonBackgroundColor); // Blue
+        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
+        button.setFocusPainted(false);
+
+    }
+
+    // Styling the textField.
+    private void styleTextField(JTextField field) {
+        field.setFont(new Font("Arial", Font.PLAIN, 14));
+        field.setForeground(StyleSet.inputTextColor);
+        field.setBackground(StyleSet.inputBackgroundColor);
+        field.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 
 }

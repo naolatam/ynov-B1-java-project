@@ -35,13 +35,39 @@ public class MainFrame extends JFrame {
         init();
     }
 
+    // All method beside do what their name mean they do.
+    // Nothing more
+
+    public void addSocket(ClientSocket cs) {
+        mp.addClient(cs);
+        this.csList.add(cs);
+        setListeners(cs);
+    }
+
+    public void closeSocket(ClientSocket cs) {
+        // Try to close the socket.
+        // It also remove the socket from the clientlist if it is closed at the end
+        try {
+            cs.close();
+        } catch (IOException e) {
+            if (cs.isClosed()) return;
+            System.err.println("Failed to close socket: " + e.getMessage());
+        } finally {
+            if(cs.isClosed()) {
+                this.csList.remove(cs);
+            }
+        }
+    }
+
+    // Initialize the frame and content
     private void init() {
+        // Set the frame title.
         setTitle(title);
 
-        getContentPane().removeAll();
         cl = new CardLayout();
         mainPanel = new JPanel(cl);
 
+        // Define properties of the frame.
         setSize(800, 600);
         setResizable(true);
         setMinimumSize(new Dimension(600, 400)); // Prevents UI breaking
@@ -52,6 +78,7 @@ public class MainFrame extends JFrame {
         mainPanel.add(mp, MAIN_PANEL);
         add(mainPanel);
 
+        // Show the login panel at first.
         showLoginPanel();
     }
 
@@ -65,30 +92,14 @@ public class MainFrame extends JFrame {
         cl.show(mainPanel, MAIN_PANEL);
     }
 
-    public void addSocket(ClientSocket cs) {
-        mp.addClient(cs);
-        this.csList.add(cs);
-        setListeners(cs);
-    }
-
-    public void closeSocket(ClientSocket cs) {
-        try {
-            cs.close();
-        } catch (IOException e) {
-            if (cs.isClosed()) return;
-            System.err.println("Failed to close socket: " + e.getMessage());
-        } finally {
-            this.csList.remove(cs);
-
-        }
-    }
-
+    // Set event listener of a ClientSocket
     private void setListeners(ClientSocket s) {
         s.setOnDisconnect(this::handleDisconnect);
         s.setOnMessage(this::handleIncomingMessage);
         s.setOnMessageConfiguration(this::handleConfigMessage);
     }
 
+    // The method behind is the method called when a specifig event call.
     private Void handleDisconnect(ClientSocket cs) {
         mp.disconnectSocket(cs);
         return null;

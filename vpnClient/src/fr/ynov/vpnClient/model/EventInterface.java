@@ -12,6 +12,7 @@ public interface EventInterface {
     public void onMessage(ClientSocket socket, Message message);
     public void onMessageConfiguration(ClientSocket socket, ConfigurationMessage message);
 
+    // Event listener
     public void onConnect(ClientSocket socket);
     public void onDisconnect(ClientSocket socket);
     public void onError(ClientSocket socket);
@@ -20,6 +21,7 @@ public interface EventInterface {
     public void setOnMessage(BiConsumer<ClientSocket, Message> onMessage);
     public void setOnMessageConfiguration(BiConsumer<ClientSocket, ConfigurationMessage> onMessageConfiguration);
 
+    // Event listener setter
     public void setOnConnect(Function<ClientSocket, Void> onConnect);
     public void setOnDisconnect(Function<ClientSocket, Void> onDisconnect);
     public void setOnError(Function<ClientSocket, Void> onError);

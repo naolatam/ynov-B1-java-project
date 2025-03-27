@@ -39,6 +39,62 @@ public class MainPanel extends JPanel {
         addComponents();
     }
 
+
+    public void addClient(CustomSocket socket) {
+        if (!clientListModel.contains(socket)) {
+            clientListModel.addElement(socket);
+        }
+    }
+
+    public void disconnectSocket(CustomSocket client) {
+        ConfigurationMessage closeMsg = new ConfigurationMessage("CLIENT disconnected", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
+        client.addMessage(closeMsg);
+        updateClient(client);
+        if (client == clientList.getSelectedValue()) {
+            addMessageAndUpdateUI(closeMsg.getContent(), false);
+        }
+    }
+
+    public void receiveMessage(CustomSocket client, Message message) {
+        if (message.isCrypted()) {
+            message.setContent("Cannot decrypt this message");
+        }
+
+        if (message.getType() == MessageType.CLOSE && !client.getSocket().isClosed()) {
+            try {
+                client.getSocket().close();
+            } catch (IOException e) {
+                if (!client.getSocket().isClosed()) {
+                    System.err.println("Failed to close socket: " + e.getMessage());
+                }
+            }
+        }
+        updateUIState();
+        if (clientList.getSelectedValue() == client) {
+            addMessageAndUpdateUI(message.getContent(), false);
+        }
+    }
+
+    public void updateClient(CustomSocket socket) {
+        int index = clientListModel.indexOf(socket);
+        if (index != -1) {
+            clientListModel.setElementAt(socket, index);
+        }
+    }
+    
+    public void updateUIState() {
+        CustomSocket selectedClient = clientList.getSelectedValue();
+        if (selectedClient != null) {
+            socketName.setText("Discussion: " + selectedClient);
+            boolean isSocketClosed = selectedClient.getSocket().isClosed();
+            sendButton.setEnabled(!isSocketClosed);
+            closeButton.setEnabled(!isSocketClosed);
+            deleteButton.setEnabled(isSocketClosed);
+        } else {
+            resetUIState();
+        }
+    }
+
     private JList<CustomSocket> initializeClientList() {
         JList<CustomSocket> list = new JList<>(clientListModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -102,19 +158,6 @@ public class MainPanel extends JPanel {
         StyleSet.styleButton(button);
         button.addActionListener(action);
         return button;
-    }
-
-    public void updateUIState() {
-        CustomSocket selectedClient = clientList.getSelectedValue();
-        if (selectedClient != null) {
-            socketName.setText("Discussion: " + selectedClient);
-            boolean isSocketClosed = selectedClient.getSocket().isClosed();
-            sendButton.setEnabled(!isSocketClosed);
-            closeButton.setEnabled(!isSocketClosed);
-            deleteButton.setEnabled(isSocketClosed);
-        } else {
-            resetUIState();
-        }
     }
 
     private void resetUIState() {
@@ -194,15 +237,6 @@ public class MainPanel extends JPanel {
         }
     }
 
-    public void disconnectSocket(CustomSocket client) {
-        ConfigurationMessage closeMsg = new ConfigurationMessage("CLIENT disconnected", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
-        client.addMessage(closeMsg);
-        updateClient(client);
-        if (client == clientList.getSelectedValue()) {
-            addMessageAndUpdateUI(closeMsg.getContent(), false);
-        }
-    }
-
     private void deleteSocket(ActionEvent e) {
         CustomSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
@@ -210,39 +244,6 @@ public class MainPanel extends JPanel {
             updateUIState();
             chatArea.removeAll();
             updateChatArea();
-        }
-    }
-
-    public void addClient(CustomSocket socket) {
-        if (!clientListModel.contains(socket)) {
-            clientListModel.addElement(socket);
-        }
-    }
-
-    public void updateClient(CustomSocket socket) {
-        int index = clientListModel.indexOf(socket);
-        if (index != -1) {
-            clientListModel.setElementAt(socket, index);
-        }
-    }
-
-    public void receiveMessage(CustomSocket client, Message message) {
-        if (message.isCrypted()) {
-            message.setContent("Cannot decrypt this message");
-        }
-
-        if (message.getType() == MessageType.CLOSE && !client.getSocket().isClosed()) {
-            try {
-                client.getSocket().close();
-            } catch (IOException e) {
-                if (!client.getSocket().isClosed()) {
-                    System.err.println("Failed to close socket: " + e.getMessage());
-                }
-            }
-        }
-        updateUIState();
-        if (clientList.getSelectedValue() == client) {
-            addMessageAndUpdateUI(message.getContent(), false);
         }
     }
 
