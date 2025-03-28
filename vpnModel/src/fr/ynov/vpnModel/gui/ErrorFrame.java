@@ -1,10 +1,31 @@
 package fr.ynov.vpnModel.gui;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.SwingUtilities;
+import javax.swing.JButton;
+import javax.swing.UIManager;
+import javax.swing.BorderFactory;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Font;
 
+/**
+ * A custom modal dialog that displays an error message with an icon and an "OK" button.
+ * This class extends {@link JDialog} to create an error popup window.
+ * The window is modal, preventing interaction with other windows until closed.
+ */
 public class ErrorFrame extends JDialog {
+
+    /**
+     * Constructs an ErrorFrame to display the given error message.
+     *
+     * @param errorMessage The error message to be displayed in the dialog.
+     */
     public ErrorFrame(String errorMessage) {
+
+        // Setting Dialog properties
         setTitle("Error");
         setSize(350, 180);
         setLocationRelativeTo(null);
@@ -49,6 +70,11 @@ public class ErrorFrame extends JDialog {
         btnClose.addActionListener(e -> dispose());
     }
 
+    /**
+     * Styles the given button with specific fonts, colors, and borders.
+     *
+     * @param button The {@link JButton} to be styled.
+     */
     private void styleButton(JButton button) {
         button.setFont(new Font("Arial", Font.BOLD, 14));
         button.setForeground(StyleSet.buttonTextColor);
@@ -57,6 +83,12 @@ public class ErrorFrame extends JDialog {
         button.setFocusPainted(false);
     }
 
+    /**
+     * Displays an error message in a modal error dialog.
+     * This method ensures that the error frame is created and displayed on the Event Dispatch Thread (EDT).
+     *
+     * @param message The error message to display in the dialog.
+     */
     public static void showError(String message) {
         SwingUtilities.invokeLater(() -> new ErrorFrame(message).setVisible(true));
     }

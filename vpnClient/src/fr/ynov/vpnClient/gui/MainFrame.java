@@ -4,8 +4,11 @@ import fr.ynov.vpnClient.model.ClientSocket;
 import fr.ynov.vpnModel.model.ConfigurationMessage;
 import fr.ynov.vpnModel.model.Message;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JPanel;
+import javax.swing.JFrame;
+import java.awt.Dimension;
+import java.awt.CardLayout;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

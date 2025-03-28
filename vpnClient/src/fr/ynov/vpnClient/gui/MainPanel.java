@@ -6,8 +6,20 @@ import fr.ynov.vpnModel.gui.StyleSet;
 import fr.ynov.vpnModel.gui.Utils;
 import fr.ynov.vpnModel.model.*;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BoxLayout;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.DefaultListModel;
+import java.awt.Dimension;
+import java.awt.BorderLayout;
+import java.awt.Font;
+
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 

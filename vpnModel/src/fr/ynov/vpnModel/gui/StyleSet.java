@@ -1,9 +1,17 @@
 package fr.ynov.vpnModel.gui;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.BorderFactory;
+import java.awt.Color;
+import java.awt.Font;
 
+/**
+ * A utility class that holds predefined color settings and a method to style components consistently across the application.
+ * This class defines colors for various UI components and provides a method for styling buttons.
+ */
 public class StyleSet {
+
+    // Predefined color settings for various UI components
     public static Color backgroundColor = new Color(45, 52, 54);
 
     public static Color buttonBackgroundColor = new Color(41, 128, 185);
@@ -24,6 +32,12 @@ public class StyleSet {
     public static Color sendedMessageBackground = new Color(0, 123, 255);
 
 
+    /**
+     * Applies a consistent style to a given {@link JButton} by setting its font, colors, and border.
+     *
+     * @param button The {@link JButton} to be styled.
+     * @see JButton
+     */
     public static void styleButton(JButton button) {
         button.setFont(new Font("Arial", Font.BOLD, 14));
         button.setForeground(StyleSet.buttonTextColor);
@@ -32,6 +46,10 @@ public class StyleSet {
         button.setFocusPainted(false);
     }
 
-    public void StyleSet() {}
+    /**
+     * Private constructor to prevent instantiation of the utility class.
+     * This constructor is not needed and has no effect, as the class is meant to be used statically.
+     */
+    private StyleSet() {}
 
 }

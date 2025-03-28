@@ -9,13 +9,26 @@ import fr.ynov.vpnModel.gui.SuccessFrame;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JTextField;
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JLabel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.BorderFactory;
+import javax.swing.SwingWorker;
+import javax.swing.SwingUtilities;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.concurrent.ExecutionException;
+
+import static fr.ynov.vpnModel.gui.StyleSet.styleButton;
 
 /**
  * LoginPanel is a JPanel that provides a user interface for connecting to a VPN server.
@@ -223,21 +236,6 @@ public class LoginPanel extends JPanel {
             btnConnect.setEnabled(isEnabled);
         });
     }
-
-    /**
-     * Stylize a {@link javax.swing.JButton}
-     *
-     * @param button the button that should be stylized.
-     */
-    private void styleButton(JButton button) {
-        button.setFont(new Font("Arial", Font.BOLD, 14));
-        button.setForeground(StyleSet.buttonTextColor);
-        button.setBackground(StyleSet.buttonBackgroundColor); // Blue
-        button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
-        button.setFocusPainted(false);
-
-    }
-
 
     /**
      * Stylize a {@link javax.swing.JTextField}
