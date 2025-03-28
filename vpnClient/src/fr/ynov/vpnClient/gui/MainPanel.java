@@ -11,8 +11,21 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 
+/**
+ * The MainPanel class represents the main user interface panel for the VPN client.
+ * It manages client connections, displays messages, and provides user controls
+ * for sending messages, closing connections, and deleting conversations.
+ */
 public class MainPanel extends JPanel {
+
+    /**
+     * The list model containing connected clients.
+     */
     private final DefaultListModel<ClientSocket> clientListModel;
+
+    /**
+     * The list component displaying connected clients.
+     */
     private final JList<ClientSocket> clientList;
     private final JPanel chatArea;
     private final JTextField messageField;
@@ -22,6 +35,11 @@ public class MainPanel extends JPanel {
 
     private final MainFrame mainFrame;
 
+    /**
+     * Constructs a MainPanel instance and initializes the UI components.
+     *
+     * @param mainFrame The main frame of the application.
+     */
     public MainPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
 
@@ -109,13 +127,22 @@ public class MainPanel extends JPanel {
         add(infoPanel, BorderLayout.NORTH);
     }
 
+    /**
+     * Adds a client socket to the client list if it is not already present.
+     *
+     * @param socket The {@link fr.ynov.vpnClient.model.ClientSocket} to be added.
+     */
     public void addClient(ClientSocket socket) {
         if (!clientListModel.contains(socket)) {
             clientListModel.addElement(socket);
         }
     }
 
-    // This method is used to update the UI and send a fake local message when server is disconnected
+    /**
+     * Handles server disconnection by sending a close message and updating the UI.
+     *
+     * @param client The {@link fr.ynov.vpnClient.model.ClientSocket} to be disconnected.
+     */
     public void disconnectSocket(ClientSocket client) {
         ConfigurationMessage cMsg = new ConfigurationMessage("SERVER disconnect", Origin.SERVER, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
         client.addMessage(cMsg);
@@ -125,7 +152,12 @@ public class MainPanel extends JPanel {
         }
     }
 
-    // This method is used to update the UI and show the new received message
+    /**
+     * Processes received messages and updates the UI accordingly.
+     *
+     * @param client  The {@link fr.ynov.vpnClient.model.ClientSocket} that sent the message.
+     * @param message The received {@link fr.ynov.vpnModel.model.Message}.
+     */
     public void receiveMessage(ClientSocket client, Message message) {
         if (message.isCrypted()) message.setContent("Unable to decrypt this message");
 
@@ -146,7 +178,11 @@ public class MainPanel extends JPanel {
         }
     }
 
-    // This method is used to update a ClientSocket name in the list
+    /**
+     * Updates the {@link fr.ynov.vpnClient.model.ClientSocket} in the client list UI.
+     *
+     * @param socket The {@link fr.ynov.vpnClient.model.ClientSocket} to be updated.
+     */
     public void updateClient(ClientSocket socket) {
         int index = clientListModel.indexOf(socket);
         if (index != -1) {
@@ -154,13 +190,18 @@ public class MainPanel extends JPanel {
         }
     }
 
-    // This method is used to show the login panel when the + button is pressed
+    /**
+     * Displays the login panel when the "Add Client" button is clicked.
+     *
+     * @param e The action event.
+     */
     private void addNewConnection(ActionEvent e) {
         this.mainFrame.showLoginPanel();
     }
 
-    // This method is used to update all button.
-    // It's set the button enabled or disabled depending on the current selection and socket state
+    /**
+     * Updates the information label and button state based on the selected client socket.
+     */
     private void updateUIState() {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
@@ -181,7 +222,9 @@ public class MainPanel extends JPanel {
         }
     }
 
-    // This method is used to load a conversation when the selected socket change
+    /**
+     * Loads the conversation history for the selected client socket.
+     */
     private void loadConversation() {
         // Clear the chatArea
         chatArea.removeAll();
@@ -195,7 +238,11 @@ public class MainPanel extends JPanel {
 
     }
 
-    // This method is used to add a new message in the chatArea depending of the message type (config/message)
+    /**
+     * Insert a message in the chat UI.
+     *
+     * @param message The {@link fr.ynov.vpnModel.model.Message} to be displayed.
+     */
     private void updateChatUI(Message message) {
         if (message.getType() == MessageType.CONFIG) {
             handleConfigMessage(message);
@@ -204,7 +251,11 @@ public class MainPanel extends JPanel {
         }
     }
 
-    // This method is used to add new configuration message in the chatArea
+    /**
+     * Handles configuration messages and insert it in the chat UI.
+     *
+     * @param message The configuration message.
+     */
     private void handleConfigMessage(Message message) {
         // Cast Message instance to ConfigurationMessage
         ConfigurationMessage configMsg = (ConfigurationMessage) message;
@@ -216,7 +267,11 @@ public class MainPanel extends JPanel {
         }
     }
 
-    // This method is used to send a message when send button is clicked
+    /**
+     * Handle "send" button click event by sending a message to the select server
+     *
+     * @param e The action event triggered by clicking the send button.
+     */
     private void sendMessage(ActionEvent e) {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null || selectedClient.isClosed()) {
@@ -239,7 +294,11 @@ public class MainPanel extends JPanel {
         }
     }
 
-    // This method is used to close the actual selected socket and prevent the server from this close
+    /**
+     * Closes the currently selected socket and notifies the server.
+     *
+     * @param e The action event triggered by clicking the close button.
+     */
     private void closeSocket(ActionEvent e) {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
@@ -256,7 +315,11 @@ public class MainPanel extends JPanel {
         updateUIState();
     }
 
-    // This method is used to remove a conversation from the list
+    /**
+     * Removes the selected client socket from the list.
+     *
+     * @param e The action event triggered by clicking the delete button.
+     */
     private void deleteSocket(ActionEvent e) {
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient == null) {
@@ -267,13 +330,20 @@ public class MainPanel extends JPanel {
         updateUIState();
     }
 
-    // This method is used to add a new message inside the chatArea and update the ui
+    /**
+     * Adds a new message to the chat area and updates the UI.
+     *
+     * @param message The message content.
+     * @param isSent  Whether the message was sent by the user.
+     */
     private void addMessageAndUpdateUI(String message, boolean isSent) {
         chatArea.add(Utils.createMessageLabel(message, isSent));
         repaintChatArea();
     }
 
-    // This method is used to refresh chatArea UI
+    /**
+     * Refreshes the chat area UI.
+     */
     private void repaintChatArea() {
         chatArea.revalidate();
         chatArea.repaint();

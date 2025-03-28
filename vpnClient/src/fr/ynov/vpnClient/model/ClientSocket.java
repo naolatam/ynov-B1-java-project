@@ -18,12 +18,16 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-
+/**
+ * The ClientSocket class extends the {@link java.net.Socket} class and implements the EventInterface.
+ * It represents a client-side socket that manages encrypted communication with a server.
+ */
 public class ClientSocket extends Socket implements EventInterface {
 
     private final List<Message> messages = new ArrayList<>();
     private final UUID uuid = UUID.randomUUID();
     private final String name;
+    private final ObjectMapper mapper = new ObjectMapper();
     private SecretKey privateKey;
     private SecretKey publicKey;
     private SecretKey serverKey;
@@ -34,8 +38,15 @@ public class ClientSocket extends Socket implements EventInterface {
     private Function<ClientSocket, Void> onError;
     private String serverName;
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
+    /**
+     * Constructs a ClientSocket and connects to the specified host and port
+     * with a 5seconds timeout.
+     *
+     * @param host the server host
+     * @param port the server port
+     * @param name the client name
+     * @throws IOException if an I/O error occurs when creating the socket
+     */
     public ClientSocket(String host, int port, String name) throws IOException {
         // Connect to the socket with a timeout of 5s
         connect(new InetSocketAddress(host, port), 5000);
@@ -44,15 +55,19 @@ public class ClientSocket extends Socket implements EventInterface {
         new Thread(this::listenMessage).start();
     }
 
-    // This method is used to set the privateKey of the socket
-    // It's also define the publicKey based on the privateKey sended
+    /**
+     * Sets the private key and derives the public key from it.
+     *
+     * @param privateKey the private key
+     */
     public void setPrivateKey(SecretKey privateKey) {
         this.publicKey = privateKey;
         this.privateKey = privateKey;
     }
 
-    // This method is used to send the public key to the server and ask him to return his public key
-    // Allowing an encrypted conversation
+    /**
+     * Requests the server's public key and send the client's public key to enable encrypted communication.
+     */
     public void askServerKey() {
         String pubKey = Base64.getEncoder().encodeToString(this.publicKey.getEncoded());
         ConfigurationMessage confMessage = new ConfigurationMessage(pubKey, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.GET_PUBLIC_KEY);
@@ -60,7 +75,9 @@ public class ClientSocket extends Socket implements EventInterface {
         sendMessage(confMessage);
     }
 
-    // This method is used to send the socket Username to the server
+    /**
+     * Sends the client's name to the server.
+     */
     public void sendName() {
         ConfigurationMessage confMessage = new ConfigurationMessage(name, Origin.CLIENT, false, MessageType.CONFIG, SocketConfiguration.SET_NAME);
         this.messages.add(confMessage);
@@ -68,15 +85,27 @@ public class ClientSocket extends Socket implements EventInterface {
         sendMessage(confMessage);
     }
 
+    /**
+     * Returns the list of messages sent and received by the client.
+     *
+     * @return {@link java.util.List}<{@link fr.ynov.vpnModel.model.Message}> list of messages
+     */
     public List<Message> getMessages() {
         return this.messages;
     }
 
+    /**
+     * Adds a message to the list of received messages.
+     *
+     * @param message the message to add
+     */
     public void addMessage(Message message) {
         this.messages.add(message);
     }
 
-    // This method is used to listen for new message
+    /**
+     * Listens for incoming messages from the server.
+     */
     private void listenMessage() {
         try {
             // Open a new BufferedReader on the socket inputStream
@@ -115,7 +144,7 @@ public class ClientSocket extends Socket implements EventInterface {
             }
             // If the readed line is null, it's mean we reach EOF, so the socket is bad detected as open
             // So we close it and send a disconnect event
-            if(in.readLine() == null) {
+            if (in.readLine() == null) {
                 this.close();
                 onDisconnect(this);
                 throw new IOException("Socket Closed");
@@ -127,7 +156,12 @@ public class ClientSocket extends Socket implements EventInterface {
         }
     }
 
-    // This method is used to create and send a new message
+    /**
+     * Sends a message to the server.
+     *
+     * @param content the {@link java.lang.String} message content
+     * @param crypted whether the message should be encrypted
+     */
     public void sendMessage(String content, Boolean crypted) {
         // Creating the message from the given parameter
         Message msg = new Message(content, Origin.CLIENT, crypted, MessageType.MESSAGE);
@@ -143,7 +177,11 @@ public class ClientSocket extends Socket implements EventInterface {
         sendMessage(msg);
     }
 
-    // This method send message to the server
+    /**
+     * Sends a message object to the server.
+     *
+     * @param msg the message to send
+     */
     public void sendMessage(Message msg) {
         // Exit conditions
         if (msg == null) {
@@ -163,7 +201,11 @@ public class ClientSocket extends Socket implements EventInterface {
         }
     }
 
-    // This method handle configuration message
+    /**
+     * Parses and handles a configuration message.
+     *
+     * @param confMessage the configuration message {@link fr.ynov.vpnModel.model.ConfigurationMessage}
+     */
     private void parseConfigFromMessage(ConfigurationMessage confMessage) {
         // If the message is crypted, decrypt it
         if (confMessage.isCrypted()) {
@@ -196,7 +238,12 @@ public class ClientSocket extends Socket implements EventInterface {
     }
 
     // This method override the classic toString method
-    // The new method return the serverName or socket uuid with state if it is closed
+
+    /**
+     * Returns the string representation of the socket.
+     *
+     * @return the socket identifier or server name with closed state if it is.
+     */
     @Override
     public String toString() {
 

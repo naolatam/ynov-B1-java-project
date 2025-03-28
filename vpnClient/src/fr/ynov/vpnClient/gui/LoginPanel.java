@@ -17,7 +17,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.concurrent.ExecutionException;
 
-
+/**
+ * LoginPanel is a JPanel that provides a user interface for connecting to a VPN server.
+ * It includes input fields for host, port, AES key, and username, along with a connect button.
+ */
 public class LoginPanel extends JPanel {
 
     private final MainFrame mf;
@@ -27,7 +30,11 @@ public class LoginPanel extends JPanel {
     private final JSpinner spPort;
     private final JButton btnConnect;
 
-
+    /**
+     * Constructs a LoginPanel with a reference to the main application frame.
+     *
+     * @param parent The main application frame.
+     */
     public LoginPanel(MainFrame parent) {
         this.mf = parent;
         // Set the layout and the background
@@ -114,6 +121,11 @@ public class LoginPanel extends JPanel {
 
     }
 
+    /**
+     * Adds a title label to the panel.
+     *
+     * @param gbc {@link java.awt.GridBagConstraints} object for positioning.
+     */
     private void addTitle(GridBagConstraints gbc) {
         // Creating a new Label for title
         JLabel title = new JLabel("Connect to server");
@@ -122,7 +134,11 @@ public class LoginPanel extends JPanel {
         add(title, gbc);
     }
 
-    // This method is called when the connect button is clicked
+    /**
+     * Handles the connection process when the connect button is clicked.
+     *
+     * @param e The ActionEvent triggered by the button click.
+     */
     private void connectToServer(ActionEvent e) {
         // Change the label of the button and desactivate it
         setButtonState(false, "Connectiong...");
@@ -175,7 +191,11 @@ public class LoginPanel extends JPanel {
 
     }
 
-    // This method is used to generate a AES Key
+    /**
+     * Generates a new AES key.
+     *
+     * @return A new AES SecretKey or null if an error occurs.
+     */
     private SecretKey generateKey() {
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("AES");
@@ -191,7 +211,12 @@ public class LoginPanel extends JPanel {
         return null;
     }
 
-    // This method is used to change the state of the connect button
+    /**
+     * Updates the state of the connect button.
+     *
+     * @param isEnabled Whether the button should be enabled.
+     * @param text      The text to display on the button.
+     */
     private void setButtonState(boolean isEnabled, String text) {
         SwingUtilities.invokeLater(() -> {
             btnConnect.setText(text);
@@ -199,7 +224,11 @@ public class LoginPanel extends JPanel {
         });
     }
 
-    // Styling the button
+    /**
+     * Stylize a {@link javax.swing.JButton}
+     *
+     * @param button the button that should be stylized.
+     */
     private void styleButton(JButton button) {
         button.setFont(new Font("Arial", Font.BOLD, 14));
         button.setForeground(StyleSet.buttonTextColor);
@@ -209,7 +238,12 @@ public class LoginPanel extends JPanel {
 
     }
 
-    // Styling the textField.
+
+    /**
+     * Stylize a {@link javax.swing.JTextField}
+     *
+     * @param field the field that should be stylized.
+     */
     private void styleTextField(JTextField field) {
         field.setFont(new Font("Arial", Font.PLAIN, 14));
         field.setForeground(StyleSet.inputTextColor);
