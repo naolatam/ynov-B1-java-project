@@ -16,9 +16,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.DefaultListModel;
-import java.awt.Dimension;
-import java.awt.BorderLayout;
-import java.awt.Font;
+import java.awt.*;
 
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -44,6 +42,9 @@ public class MainPanel extends JPanel {
     private final JLabel socketName;
     private final JButton sendButton, closeButton, deleteButton;
     private final JButton addClientButton; // New button to add a connection
+    private final GridBagConstraints chatAreaGBC = new GridBagConstraints();
+
+
 
     private final MainFrame mainFrame;
 
@@ -83,10 +84,26 @@ public class MainPanel extends JPanel {
         // Chat zone
         chatArea = new JPanel();
         chatArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        chatArea.setLayout(new BoxLayout(chatArea, BoxLayout.Y_AXIS));
+        chatArea.setLayout(new GridBagLayout());
         chatArea.setBackground(StyleSet.backgroundColor);
         chatArea.setForeground(StyleSet.titleTextColor);
         JScrollPane chatScroll = new JScrollPane(chatArea);
+
+        // Init the grid constraints for chatArea
+        chatAreaGBC.gridx = 0;
+        chatAreaGBC.gridy = 0;
+        chatAreaGBC.anchor = GridBagConstraints.NORTH; // Align components to the top
+        chatAreaGBC.gridwidth = 3;
+
+        // Adding label information colons
+        chatArea.add(new JLabel("Sent"), chatAreaGBC);
+        chatAreaGBC.gridx++;
+        chatArea.add(new JLabel("Configuration"), chatAreaGBC);
+        chatAreaGBC.gridx++;
+        chatArea.add(new JLabel("Received"), chatAreaGBC);
+        chatAreaGBC.gridx = 0;
+        chatAreaGBC.gridy++;
+        repaintChatArea();
 
         // Field to enter message and button to send it
         JPanel inputPanel = new JPanel(new BorderLayout());
@@ -271,12 +288,14 @@ public class MainPanel extends JPanel {
     private void handleConfigMessage(Message message) {
         // Cast Message instance to ConfigurationMessage
         ConfigurationMessage configMsg = (ConfigurationMessage) message;
+        chatAreaGBC.anchor = GridBagConstraints.CENTER;
         switch (configMsg.getConfiguration()) {
             case SET_NAME ->
-                    chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " set name: " + message.getContent()));
+                    chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " set name: " + message.getContent()), chatAreaGBC);
             case GET_PUBLIC_KEY, SEND_PUBLIC_KEY ->
-                    chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " sent a key"));
+                    chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " sent a key"), chatAreaGBC);
         }
+        chatAreaGBC.gridy++;
     }
 
     /**
@@ -349,8 +368,10 @@ public class MainPanel extends JPanel {
      * @param isSent  Whether the message was sent by the user.
      */
     private void addMessageAndUpdateUI(String message, boolean isSent) {
-        chatArea.add(Utils.createMessageLabel(message, isSent));
+        chatAreaGBC.anchor = isSent?GridBagConstraints.WEST:GridBagConstraints.EAST;
+        chatArea.add(Utils.createMessageLabel(message, isSent), chatAreaGBC);
         repaintChatArea();
+        chatAreaGBC.gridy++;
     }
 
     /**
