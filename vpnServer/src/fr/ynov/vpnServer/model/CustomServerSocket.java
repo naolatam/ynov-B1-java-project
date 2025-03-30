@@ -143,17 +143,16 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 // Add the message to the history and send onMessage event
                 socket.addMessage(msg);
                 onMessage(socket, msg);
+                continue;
             }
+            onDisconnect(socket);
         }
         // If there is no socket, return an error
         if(socket.getSocket() == null) {
             onError(socket);
             return;
         }
-        // If the loop end, check if the socket is closed, then send a onDisconnect event
-        if (socket.getSocket().isClosed()) {
-            onDisconnect(socket);
-        }
+
     }
 
     /**
