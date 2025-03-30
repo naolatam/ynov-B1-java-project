@@ -17,6 +17,10 @@ import java.util.Base64;
 
 import static fr.ynov.vpnModel.gui.StyleSet.styleButton;
 
+/**
+ * SetupPanel is a JPanel representing the setup interface for configuring and starting the VPN server.
+ * It allows the user to specify a port, generate an AES key, and enter a server name.
+ */
 public class SetupPanel extends JPanel {
 
     private final MainFrame mf;
@@ -24,11 +28,17 @@ public class SetupPanel extends JPanel {
     private JSpinner spPort;
     private JButton btnStart;
 
+    /**
+     * Constructs the SetupPanel with the given MainFrame as its parent.
+     *
+     * @param parent The main application frame that contains this panel.
+     */
     public SetupPanel(MainFrame parent) {
         this.mf = parent;
         setLayout(new GridBagLayout());
         setBackground(StyleSet.backgroundColor);
 
+        // Initialing the grid
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.gridx = 0;
@@ -42,6 +52,11 @@ public class SetupPanel extends JPanel {
         addStartButton(gbc);
     }
 
+    /**
+     * Adds a title label to the panel.
+     *
+     * @param gbc {@link java.awt.GridBagConstraints} object for positioning.
+     */
     private void addTitle(GridBagConstraints gbc) {
         JLabel title = new JLabel("Server setup");
         title.setFont(new Font("Arial", Font.BOLD, 24));
@@ -55,6 +70,11 @@ public class SetupPanel extends JPanel {
         add(subTitle, gbc);
     }
 
+    /**
+     * Add the port input into the form.
+     *
+     * @param gbc {@link java.awt.GridBagConstraints} object for positioning.
+     */
     private void addPortInput(GridBagConstraints gbc) {
         gbc.gridwidth = 1;
         gbc.gridy++;
@@ -68,6 +88,11 @@ public class SetupPanel extends JPanel {
         add(spPort, gbc);
     }
 
+    /**
+     * Adds the AES key input zone.
+     *
+     * @param gbc {@link java.awt.GridBagConstraints} object for positioning.
+     */
     private void addKeyInput(GridBagConstraints gbc) {
         gbc.gridx = 0;
         gbc.gridy++;
@@ -83,6 +108,11 @@ public class SetupPanel extends JPanel {
         add(txtKey, gbc);
     }
 
+    /**
+     * Adds a name input to the panel.
+     *
+     * @param gbc {@link java.awt.GridBagConstraints} object for positioning.
+     */
     private void addNameInput(GridBagConstraints gbc) {
         gbc.gridx = 0;
         gbc.gridy++;
@@ -96,17 +126,26 @@ public class SetupPanel extends JPanel {
         add(txtName, gbc);
     }
 
+    /**
+     * Adds the start button to the panel.
+     *
+     * @param gbc {@link java.awt.GridBagConstraints} object for positioning.
+     */
     private void addStartButton(GridBagConstraints gbc) {
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 2;
         btnStart = new JButton("Start");
         styleButton(btnStart);
-        btnStart.addActionListener(this::connectToServer);
+        btnStart.addActionListener(this::startTheServer);
         add(btnStart, gbc);
     }
 
-
+    /**
+     * Stylize a component
+     *
+     * @param component {@link javax.swing.JComponent} component to stylize.
+     */
     private void styleComponent(JComponent component) {
         component.setFont(new Font("Arial", Font.PLAIN, 14));
         component.setForeground(StyleSet.inputTextColor);
@@ -114,7 +153,12 @@ public class SetupPanel extends JPanel {
         component.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
     }
 
-    private void connectToServer(ActionEvent e) {
+    /**
+     * Handles the starting process when the start button is clicked.
+     *
+     * @param e The ActionEvent triggered by the button click.
+     */
+    private void startTheServer(ActionEvent e) {
         btnStart.setText("Starting...");
         btnStart.setEnabled(false);
 
@@ -122,8 +166,10 @@ public class SetupPanel extends JPanel {
         new SwingWorker<Boolean, Void>() {
             @Override
             protected Boolean doInBackground() {
+                // Trying to start the server socket
                 try {
                     CustomServerSocket socket = new CustomServerSocket(port, txtName.getText());
+                    // setting the privateKey if it's start well!
                     socket.setPrivateKey(new SecretKeySpec(Base64.getDecoder().decode(txtKey.getText()), "AES"));
                     mf.setServerSocket(socket);
                     return true;
@@ -135,6 +181,7 @@ public class SetupPanel extends JPanel {
             @Override
             protected void done() {
                 try {
+                    // If connexion return true
                     if (get()) {
                         SuccessFrame.showSuccess("Server socket started on port: " + port);
                         mf.showMainPanel();
@@ -150,6 +197,11 @@ public class SetupPanel extends JPanel {
         }.execute();
     }
 
+    /**
+     * Generates a new AES key for secure communication.
+     *
+     * @return A newly generated AES {@link SecretKey}.
+     */
     private SecretKey generateKey() {
         try {
             KeyGenerator keyGen = KeyGenerator.getInstance("AES");
