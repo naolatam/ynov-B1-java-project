@@ -145,6 +145,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 onMessage(socket, msg);
                 continue;
             }
+            // If the message is null, meaning the inputStream reach EOF
             onDisconnect(socket);
         }
         // If there is no socket, return an error
