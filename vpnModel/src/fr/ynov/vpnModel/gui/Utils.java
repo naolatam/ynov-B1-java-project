@@ -25,23 +25,29 @@ public class Utils {
     }
 
     /**
-     * Creates and styles a JLabel for displaying a message.
+     * Creates and styles a JTextArea as a JLabel for displaying a message.
      * The background color of the label depends on whether the message was sent or received.
+     * The JTextArea is used for his text wrap properties
      *
      * @param text The text to be displayed on the label.
      * @param isSent A boolean indicating whether the message was sent (true) or received (false).
-     * @return A styled {@link JLabel} for the message.
+     * @return A styled {@link JTextArea} for the message.
      */
-    public static JLabel createMessageLabel(String text, boolean isSent) {
-        JLabel messageLabel = new JLabel(text);
+    public static JTextArea createMessageLabel(String text, boolean isSent) {
+        JTextArea messageLabel = new JTextArea(text);
+        messageLabel.setLineWrap(true);
+        messageLabel.setWrapStyleWord(true);
+        messageLabel.setOpaque(true);  // Makes it look like a JLabel
+        messageLabel.setEditable(false);
+        messageLabel.setFocusable(false);
+        messageLabel.setBorder(null);
         messageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-        messageLabel.setOpaque(true);
         messageLabel.setForeground(Color.WHITE);
         messageLabel.setBackground(
                 isSent ?
                         StyleSet.sendedMessageBackground :
                         StyleSet.receivedMessageBackground);
-        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, 5, 8, 10));
+        messageLabel.setBorder(BorderFactory.createEmptyBorder(8, isSent?5:10, 8, isSent?10:5));
 
         return messageLabel;
     }

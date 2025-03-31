@@ -6,16 +6,7 @@ import fr.ynov.vpnModel.gui.StyleSet;
 import fr.ynov.vpnModel.gui.Utils;
 import fr.ynov.vpnModel.model.*;
 
-import javax.swing.BoxLayout;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.DefaultListModel;
+import javax.swing.*;
 import java.awt.*;
 
 import java.awt.event.ActionEvent;
@@ -92,18 +83,8 @@ public class MainPanel extends JPanel {
         // Init the grid constraints for chatArea
         chatAreaGBC.gridx = 0;
         chatAreaGBC.gridy = 0;
-        chatAreaGBC.anchor = GridBagConstraints.NORTH; // Align components to the top
-        chatAreaGBC.gridwidth = 3;
-
-        // Adding label information colons
-        chatArea.add(new JLabel("Sent"), chatAreaGBC);
-        chatAreaGBC.gridx++;
-        chatArea.add(new JLabel("Configuration"), chatAreaGBC);
-        chatAreaGBC.gridx++;
-        chatArea.add(new JLabel("Received"), chatAreaGBC);
-        chatAreaGBC.gridx = 0;
-        chatAreaGBC.gridy++;
-        repaintChatArea();
+        chatAreaGBC.weightx = 1.0;
+        chatAreaGBC.anchor = GridBagConstraints.NORTH;
 
         // Field to enter message and button to send it
         JPanel inputPanel = new JPanel(new BorderLayout());
@@ -258,6 +239,7 @@ public class MainPanel extends JPanel {
         // Clear the chatArea
         chatArea.removeAll();
         updateUIState();
+        chatAreaGBC.anchor = GridBagConstraints.NORTH;
 
         ClientSocket selectedClient = clientList.getSelectedValue();
         if (selectedClient != null) {
@@ -288,7 +270,6 @@ public class MainPanel extends JPanel {
     private void handleConfigMessage(Message message) {
         // Cast Message instance to ConfigurationMessage
         ConfigurationMessage configMsg = (ConfigurationMessage) message;
-        chatAreaGBC.anchor = GridBagConstraints.CENTER;
         switch (configMsg.getConfiguration()) {
             case SET_NAME ->
                     chatArea.add(Utils.createConfigMessageLabel(message.getOrigin().name() + " set name: " + message.getContent()), chatAreaGBC);
@@ -369,7 +350,8 @@ public class MainPanel extends JPanel {
      */
     private void addMessageAndUpdateUI(String message, boolean isSent) {
         chatAreaGBC.anchor = isSent?GridBagConstraints.WEST:GridBagConstraints.EAST;
-        chatArea.add(Utils.createMessageLabel(message, isSent), chatAreaGBC);
+        JTextArea msg = Utils.createMessageLabel(message, isSent);
+        chatArea.add(msg, chatAreaGBC);
         repaintChatArea();
         chatAreaGBC.gridy++;
     }
