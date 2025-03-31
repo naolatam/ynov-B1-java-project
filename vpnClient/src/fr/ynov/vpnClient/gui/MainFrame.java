@@ -99,7 +99,8 @@ public class MainFrame extends JFrame {
         setResizable(true);
         setMinimumSize(new Dimension(600, 400)); // Prevents UI breaking
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+            
 
         mainPanel.add(lp, LOGIN_PANEL);
         mainPanel.add(mp, MAIN_PANEL);
