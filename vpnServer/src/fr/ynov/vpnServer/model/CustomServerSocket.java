@@ -146,7 +146,9 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
                 continue;
             }
             // If the message is null, meaning the inputStream reach EOF
-            onDisconnect(socket);
+            if(!socket.getSocket().isClosed()) {
+                onDisconnect(socket);
+            }
         }
         // If there is no socket, return an error
         if(socket.getSocket() == null) {
