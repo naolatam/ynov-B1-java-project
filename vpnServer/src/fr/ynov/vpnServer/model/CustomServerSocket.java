@@ -1,5 +1,6 @@
 package fr.ynov.vpnServer.model;
 
+import fr.ynov.vpnModel.gui.ErrorFrame;
 import fr.ynov.vpnModel.model.*;
 
 import javax.crypto.SecretKey;
@@ -124,7 +125,7 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
      *
      * @param socket the client socket to listen for messages.
      */
-    private void handleMessage(CustomSocket socket) {
+    private void handleMessage(CustomSocket socket)  {
         while (socket != null && !socket.getSocket().isClosed() ) {
             // Listening for new message
             Message msg = socket.listenForMessage();
@@ -147,8 +148,14 @@ public class CustomServerSocket extends ServerSocket implements EncryptDecryptIn
             }
             // If the message is null, meaning the inputStream reach EOF
             if(!socket.getSocket().isClosed()) {
+                try {
+                    socket.getSocket().close();
+                } catch (IOException e) {
+                    ErrorFrame.showError("Unable to close socket");
+                }
                 onDisconnect(socket);
             }
+
         }
         // If there is no socket, return an error
         if(socket.getSocket() == null) {

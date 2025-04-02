@@ -7,6 +7,7 @@ import fr.ynov.vpnModel.gui.Utils;
 import fr.ynov.vpnModel.model.*;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 
 import java.awt.event.ActionEvent;
@@ -54,7 +55,7 @@ public class MainPanel extends JPanel {
         clientListModel = new DefaultListModel<>();
         clientList = new JList<>(clientListModel);
         clientList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        clientList.addListSelectionListener(e -> loadConversation());
+        clientList.addListSelectionListener(this::loadConversation);
         clientList.setBackground(StyleSet.backgroundColor);
         clientList.setForeground(StyleSet.labelTextColor);
         JScrollPane listScroll = new JScrollPane(clientList);
@@ -159,6 +160,7 @@ public class MainPanel extends JPanel {
         updateClient(client);
         if (client == clientList.getSelectedValue()) {
             addMessageAndUpdateUI(cMsg.getContent(), false);
+            updateUIState();
         }
     }
 
@@ -235,7 +237,8 @@ public class MainPanel extends JPanel {
     /**
      * Loads the conversation history for the selected client socket.
      */
-    private void loadConversation() {
+    private void loadConversation(ListSelectionEvent listSelectionEvent) {
+        if(listSelectionEvent.getValueIsAdjusting()) return;
         // Clear the chatArea
         chatArea.removeAll();
         updateUIState();
@@ -318,13 +321,13 @@ public class MainPanel extends JPanel {
             return;
         }
         ConfigurationMessage cMsg = new ConfigurationMessage("CLIENT close the connection", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
-        selectedClient.addMessage(cMsg);
         selectedClient.sendMessage(cMsg);
-        chatArea.add(Utils.createMessageLabel(cMsg.getContent(), true));
-
         mainFrame.closeSocket(selectedClient);
+
+        selectedClient.addMessage(cMsg);
+        addMessageAndUpdateUI(cMsg.getContent(), true);
+
         updateClient(selectedClient);
-        updateUIState();
     }
 
     /**

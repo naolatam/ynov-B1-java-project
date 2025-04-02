@@ -12,6 +12,7 @@ import fr.ynov.vpnServer.model.CustomSocket;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
@@ -80,11 +81,13 @@ public class MainPanel extends JPanel {
      */
     public void disconnectSocket(CustomSocket client) {
         // Send a new fake message to say the CLIENT has been disconnected.
+        System.out.println("disconnectSocket");
         ConfigurationMessage closeMsg = new ConfigurationMessage("CLIENT disconnected", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
         client.addMessage(closeMsg);
         updateClient(client);
         if (client == clientList.getSelectedValue()) {
             addMessageAndUpdateUI(closeMsg.getContent(), false);
+            updateUIState();
         }
     }
 
@@ -108,6 +111,7 @@ public class MainPanel extends JPanel {
                     System.err.println("Failed to close socket: " + e.getMessage());
                 }
             }
+            updateClient(client);
         }
         updateUIState();
         if (clientList.getSelectedValue() == client) {
@@ -148,7 +152,7 @@ public class MainPanel extends JPanel {
     private JList<CustomSocket> initializeClientList() {
         JList<CustomSocket> list = new JList<>(clientListModel);
         list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        list.addListSelectionListener(e -> loadConversation());
+        list.addListSelectionListener(this::loadConversation);
         list.setBackground(StyleSet.backgroundColor);
         list.setForeground(StyleSet.labelTextColor);
         return list;
@@ -223,7 +227,8 @@ public class MainPanel extends JPanel {
     /**
      * Loads the conversation history for the selected client socket.
      */
-    private void loadConversation() {
+    private void loadConversation(ListSelectionEvent listSelectionEvent) {
+        if(listSelectionEvent.getValueIsAdjusting()) return;
         // Clear the chatArea and update UI
         chatArea.removeAll();
         updateUIState();

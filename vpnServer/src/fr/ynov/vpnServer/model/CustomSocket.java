@@ -144,10 +144,7 @@ public class CustomSocket {
             }
             // If no line can be read, so null, this mean the inputStream reach END-OF-FILE,
             // so it's close the connection
-            if (in.readLine() == null) {
-                this.socket.close();
-                throw new IOException("Socket Closed");
-            }
+
         } catch (IOException e) {
             if (!socket.isClosed()) {
                 System.err.println("Unable to listen for messages: " + e.getMessage());
