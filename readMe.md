@@ -124,3 +124,6 @@ This project is licensed under the MIT License.
 
 Feel free to contribute to the project by submitting issues and pull requests.
 
+## Author
+    - MATA Loan
+
