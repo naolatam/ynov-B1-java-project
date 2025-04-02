@@ -81,7 +81,6 @@ public class MainPanel extends JPanel {
      */
     public void disconnectSocket(CustomSocket client) {
         // Send a new fake message to say the CLIENT has been disconnected.
-        System.out.println("disconnectSocket");
         ConfigurationMessage closeMsg = new ConfigurationMessage("CLIENT disconnected", Origin.CLIENT, false, MessageType.CLOSE, SocketConfiguration.CLOSE_CONNECTION);
         client.addMessage(closeMsg);
         updateClient(client);
